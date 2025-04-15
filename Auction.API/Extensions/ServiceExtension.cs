@@ -23,6 +23,7 @@ public static class ServiceExtension
 
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
     {
+        services.AddSingleton<AppDbContext>();
         return services;
     }
 

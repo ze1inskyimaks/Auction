@@ -4,8 +4,8 @@ namespace Auction.Data.Interface;
 
 public interface IAuctionHistoryRepository
 {
-    public void CreateHistoryLog();
-    public void DeleteHistoryLog();
+    public Task CreateHistoryLog(AuctionHistory lot);
+    public Task DeleteHistoryLog(AuctionHistory lot);
 
-    public AuctionLot GetHistoryLog(Guid id);
+    public Task<AuctionHistory?> GetHistoryLog(Guid id);
 }

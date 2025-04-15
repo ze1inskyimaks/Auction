@@ -32,11 +32,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 .HasColumnType("datetime")
                 .IsRequired();
 
-            entity.HasOne(a => a.Account)
+            entity.HasOne(a => a.OwnerAccount)
                 .WithMany(b => b.HostedLots)
-                .HasForeignKey(a => a.OwnerAccount)
-                .IsRequired();
+                .HasForeignKey(a => a.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(e => e.WinnerAccount)
+                .WithMany(a => a.WinningLots)
+                .HasForeignKey(e => e.WinnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
             entity.HasIndex(e => e.StartTime);
         });
         
@@ -55,7 +60,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             entity.HasOne(a => a.AuctionLot)
                 .WithMany(b => b.AuctionHistories)
                 .HasForeignKey(a => a.AuctionLot)
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

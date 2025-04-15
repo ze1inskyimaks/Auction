@@ -7,8 +7,8 @@ public class AuctionLot
     public string Description { get; set; } = String.Empty;
     public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
     
-    public Guid OwnerAccount { get; set; }
-    public required Account Account { get; set; }
+    public Guid OwnerId { get; set; }
+    public Account? OwnerAccount { get; set; }
 
     public Guid? CurrentWinnerId { get; set; }
     public double CurrentPrice { get; set; } = 0;
