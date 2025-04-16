@@ -66,7 +66,7 @@ public static class ServiceExtension
                 {
                     OnMessageReceived = context =>
                     {
-                        var token = context.Request.Cookies[tokenOptions.Word];
+                        var token = context.Request.Cookies[tokenOptions.JwtSecretWord];
                         if (!string.IsNullOrEmpty(token))
                         {
                             context.Token = token;

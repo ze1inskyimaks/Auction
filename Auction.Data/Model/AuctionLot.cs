@@ -4,7 +4,7 @@ public class AuctionLot
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public required string Name { get; set; }
-    public string Description { get; set; } = String.Empty;
+    public string? Description { get; set; }
     public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
     
     public Guid OwnerId { get; set; }
