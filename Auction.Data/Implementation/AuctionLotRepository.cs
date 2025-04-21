@@ -12,26 +12,37 @@ public class AuctionLotRepository : IAuctionLotRepository
         _context = context;
     }
     
-    public async Task CreateLot(AuctionLot lot)
+    public async Task<AuctionLot> CreateLot(AuctionLot lot)
     {
         await _context.AuctionLots.AddAsync(lot);
         await _context.SaveChangesAsync();
+        return lot;
     }
 
-    public async Task ChangeLot(AuctionLot lot)
+    public async Task<AuctionLot> ChangeLot(AuctionLot lot)
     {
         _context.Update(lot);
         await _context.SaveChangesAsync();
+        return lot;
     }
 
-    public async Task DeleteLot(AuctionLot lot)
+    public async Task<AuctionLot> DeleteLot(AuctionLot lot)
     {
         _context.Remove(lot);
         await _context.SaveChangesAsync();
+        return lot;
     }
 
     public async Task<AuctionLot?> GetLot(Guid id)
     {
         return await _context.AuctionLots.FindAsync(id);
+    }
+
+    public List<AuctionLot> GetActiveLot()
+    {
+        var list = _context.AuctionLots
+            .Where(e => e.Status == Status.Active || e.Status == Status.Open)
+            .ToList();
+        return list;
     }
 }

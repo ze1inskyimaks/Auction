@@ -18,43 +18,96 @@ public class AuctionLotService : IAuctionLotService
         _lotRepository = lotRepository;
         _logger = logger;
     }
-    public async Task<Result> CreateAuctionLot(AuctionLotDtoInput lot, Account account)
+    public async Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lotDtoInput, Account account)
     {
         try
         { 
-            await _lotRepository.CreateLot(AuctionLotMapping.ToAuctionLot(lot, account));
+            var lot = await _lotRepository.CreateLot(AuctionLotMapping.ToAuctionLot(lotDtoInput, account));
             _logger.LogInformation("Successful creating auction lot with account: {UserId}", account);
-            return Result.Success();
+            return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error with creating auction lot with account: {UserID}", account);
-            return Result.Failure(e.ToString());
+            return Result<AuctionLotDtoOutput>.Failure(e.ToString());
         }
     }
 
-    public async Task<bool> ChangeAuctionLot(AuctionLotDtoInput lot, Account account)
+    public async Task<Result<AuctionLotDtoOutput>> ChangeAuctionLot(Guid lotId, AuctionLotDtoInput lotDtoInput, Account account)
     {
         try
         {
-            await _lotRepository.ChangeLot(AuctionLotMapping.ToAuctionLot(lot, account));
+            var lotById = await _lotRepository.GetLot(lotId);
+            if (lotById is null)
+            {
+                throw new Exception($"Error with finding auction lot by Id: {lotId}");
+            }
+            if (lotById.OwnerAccount != account)
+            {
+                throw new Exception($"You are not owned this auction lot. Id: {lotId}, Account: {account}");
+            }
+
+            if (lotById.Status != Status.Active || lotById.Status != Status.Cancelled)
+            {
+                throw new Exception($"You are can`t change this auction lot, because his status: {lotById.Status}. Id: {lotId}, Account: {account}");
+            }
+            
+            var lot = await _lotRepository.ChangeLot(AuctionLotMapping.ToAuctionLot(lotDtoInput, account));
             _logger.LogInformation("Successful changing auction lot with account: {UserId}", account);
-            return true;
+            return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error with changing auction lot with account: {UserID}", account);
-            return false;
+            return Result<AuctionLotDtoOutput>.Failure(e.ToString());
         }
     }
 
-    public async Task<bool> DeleteAuctionLot(Guid id, Account account)
+    public async Task<Result<AuctionLotDtoOutput>> DeleteAuctionLot(Guid lotId, Account account)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var lotById = await _lotRepository.GetLot(lotId);
+            if (lotById is null)
+            {
+                throw new Exception($"Error with finding auction lot by Id: {lotId}");
+            }
+
+            if (lotById.OwnerAccount != account)
+            {
+                throw new Exception($"You are not owned this auction lot. Id: {lotId}, Account: {account}");
+            }
+            if (lotById.Status != Status.Active || lotById.Status != Status.Cancelled)
+            {
+                throw new Exception($"You are can`t change this auction lot, because his status: {lotById.Status}. Id: {lotId}, Account: {account}");
+            }
+            
+            var lot = await _lotRepository.DeleteLot(lotById);
+            
+            _logger.LogInformation("Successful deleting auction lot with account: {UserId}", account);
+            return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error with deleting auction lot with account: {UserID}", account);
+            return Result<AuctionLotDtoOutput>.Failure(e.ToString());
+        }    
     }
 
-    public async Task GetAuctionLot(Guid id)
+    public async Task<AuctionLotDtoOutput?> GetAuctionLot(Guid id)
     {
-        throw new NotImplementedException();
+        var lot = await _lotRepository.GetLot(id);
+        if (lot is null)
+        {
+            return null;
+        }
+        return AuctionLotMapping.ToDto(lot);
+    }
+    
+    public List<AuctionLotDtoOutput> GetListOfActiveAuctionLots()
+    {
+        return _lotRepository.GetActiveLot()!
+            .Select(AuctionLotMapping.ToDto)
+            .ToList();
     }
 }

@@ -4,9 +4,10 @@ namespace Auction.Data.Interface;
 
 public interface IAuctionLotRepository
 {
-    public Task CreateLot(AuctionLot lot);
-    public Task ChangeLot(AuctionLot lot);
-    public Task DeleteLot(AuctionLot lot);
+    public Task<AuctionLot> CreateLot(AuctionLot lot);
+    public Task<AuctionLot> ChangeLot(AuctionLot lot);
+    public Task<AuctionLot> DeleteLot(AuctionLot lot);
 
     public Task<AuctionLot?> GetLot(Guid id);
+    public List<AuctionLot>? GetActiveLot();
 }
