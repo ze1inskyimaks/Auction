@@ -108,6 +108,7 @@ public static class ServiceExtension
 
         app.UseAuthentication(); // 🔥 Має бути перед Authorization!
         app.UseAuthorization();
+        app.MapHub<AuctionHub>("/auctionhub").RequireAuthorization();
         app.MapControllers();
         app.UseHttpsRedirection();
 

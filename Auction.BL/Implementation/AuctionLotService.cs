@@ -2,9 +2,12 @@
 using Auction.BL.Model.AuctionLot;
 using Auction.BL.Model.Mapping;
 using Auction.BL.Model.Result;
+using Auction.Data;
+using Auction.Data.Implementation;
 using Auction.Data.Interface;
 using Auction.Data.Model;
 using Hangfire;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 namespace Auction.BL.Implementation;
@@ -14,12 +17,16 @@ public class AuctionLotService : IAuctionLotService
     private readonly IAuctionLotRepository _lotRepository;
     private readonly ILogger<AuctionLotService> _logger;
     private readonly IAuctionLobbyService _lobbyService;
+    private readonly UserManager<Account> _userManager;
+    private readonly AppDbContext _context;
 
-    public AuctionLotService(IAuctionLotRepository lotRepository, ILogger<AuctionLotService> logger, IAuctionLobbyService lobbyService)
+    public AuctionLotService(IAuctionLotRepository lotRepository, ILogger<AuctionLotService> logger, IAuctionLobbyService lobbyService, UserManager<Account> userManager, AppDbContext context)
     {
         _lotRepository = lotRepository;
         _logger = logger;
         _lobbyService = lobbyService;
+        _userManager = userManager;
+        _context = context;
     }
     public async Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lotDtoInput, Account account)
     {
@@ -34,6 +41,8 @@ public class AuctionLotService : IAuctionLotService
             lot.JobId = jobId;
 
             await _lotRepository.ChangeLot(lot);
+
+            await _userManager.AddHostedLotToAccount(_context, account.Id, lot);
             
             _logger.LogInformation("Successful creating auction lot with account: {UserId}", account);
             return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
@@ -83,7 +92,8 @@ public class AuctionLotService : IAuctionLotService
             lotById.Name = lotDtoInput.Name;
             lotById.Description = lotDtoInput.Description;
             lotById.StartPrice = lotDtoInput.StartPrice;
-                
+            lotById.UpdatedAt = DateTime.Now;    
+            
             var lot = await _lotRepository.ChangeLot(lotById);
             
             _logger.LogInformation("Successful changing auction lot with account: {UserId}", account);

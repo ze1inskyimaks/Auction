@@ -1,4 +1,5 @@
-﻿using Auction.BL.Interface;
+﻿using System.Security.Claims;
+using Auction.BL.Interface;
 using Auction.BL.Model.AuctionLot;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -79,8 +80,16 @@ public class AuctionHub : Hub
         });
     }
     
-    public async Task PlaceBid(Guid lotId, string accountId, double amount)
+    public async Task PlaceBid(Guid lotId, double amount)
     {
+        var accountId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        if (string.IsNullOrEmpty(accountId) || !Guid.TryParse(accountId, out var userId))
+        {
+            await Clients.Caller.SendAsync("Error", "Invalid account ID.");
+            return;
+        }
+        
         try
         {
             await _lobbyService.Bid(lotId, Guid.Parse(accountId), amount);

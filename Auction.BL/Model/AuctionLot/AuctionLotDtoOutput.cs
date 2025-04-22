@@ -19,7 +19,7 @@ public class AuctionLotDtoOutput
     
     public double StartPrice { get; set; } = 0;
     public double EndPrice { get; set; } = 0;
-    public string? WinnerId { get; set; }
+    public Guid? WinnerId { get; set; }
 
     public Status Status { get; set; }
     public DateTime UpdatedAt { get; set; }

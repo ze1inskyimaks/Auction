@@ -28,7 +28,8 @@ public class AuctionApi : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAuctionLot([FromBody] AuctionLotDtoInput lotInput)
     {
-        //TODO: Need to add moderation parameter for all model
+        //TODO: Need to add photo property to Auction Lot
+        //TODO: Need to add pay system
         var user = await _userManager.GetUserAsync(User);
         
         if (user == null)

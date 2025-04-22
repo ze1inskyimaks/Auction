@@ -1,13 +1,21 @@
-﻿namespace Auction.Data.Model;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Auction.Data.Model;
 
 public class AuctionLot
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    
+    [Required]
+    [StringLength(100, MinimumLength = 3)]
     public required string Name { get; set; }
+    
+    [StringLength(500)]
     public string? Description { get; set; }
     public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
     public string JobId { get; set; } = String.Empty;
     
+    [Required]
     public Guid OwnerId { get; set; }
     public Account? OwnerAccount { get; set; }
 
@@ -18,9 +26,10 @@ public class AuctionLot
     public List<Guid>? AuctionHistoryId { get; set; }
     public List<AuctionHistory>? AuctionHistories { get; set; }
     
+    [Required]
     public double StartPrice { get; set; } = 0;
     public double EndPrice { get; set; } = 0;
-    public string? WinnerId { get; set; }
+    public Guid? WinnerId { get; set; }
     public Account? WinnerAccount { get; set; }
 
     public Status Status { get; set; } = Status.Active;
