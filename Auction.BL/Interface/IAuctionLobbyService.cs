@@ -1,6 +1,11 @@
-﻿namespace Auction.BL.Interface;
+﻿using Auction.Data.Model;
+
+namespace Auction.BL.Interface;
 
 public interface IAuctionLobbyService
 {
-    public Task Bid();
+    public Task StartAuction(Guid lotId);
+    public Task Bid(Guid lotId, Guid accountId, double amount);
+    public Task FinishAuction(Guid lotId, Guid accountId, double amount);
+    //TODO: Need to realise this function on implementation class
 }

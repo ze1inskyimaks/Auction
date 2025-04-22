@@ -28,6 +28,7 @@ public class AuctionApi : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateAuctionLot([FromBody] AuctionLotDtoInput lotInput)
     {
+        //TODO: Need to add moderation parameter for all model
         var user = await _userManager.GetUserAsync(User);
         
         if (user == null)

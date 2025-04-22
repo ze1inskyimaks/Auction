@@ -1,19 +1,24 @@
 ﻿using Auction.BL.Interface;
 using Auction.BL.Model.AuctionLot;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace Auction.BL.Services;
 
 public class AuctionHub : Hub
 {
+    private readonly ILogger<AuctionHub> _logger;
     private readonly IAuctionLobbyService _lobbyService;
     private readonly IAuctionLotService _lotService;
+    private readonly IAuctionTimerService _timerService;
     private const string Lobby = "lobby";
 
-    public AuctionHub(IAuctionLobbyService lobbyService, IAuctionLotService lotService)
+    public AuctionHub(ILogger<AuctionHub> logger, IAuctionLobbyService lobbyService, IAuctionLotService lotService, IAuctionTimerService timerService)
     {
+        _logger = logger;
         _lobbyService = lobbyService;
         _lotService = lotService;
+        _timerService = timerService;
     }
     
     public override async Task OnConnectedAsync()
@@ -76,8 +81,21 @@ public class AuctionHub : Hub
     
     public async Task PlaceBid(Guid lotId, string accountId, double amount)
     {
-        await _lobbyService.Bid();
-        //TODO: Need to create some logic before send message  
-        await Clients.Groups(lotId.ToString()).SendAsync("ReceiveBid", lotId, accountId, amount);
+        try
+        {
+            await _lobbyService.Bid(lotId, Guid.Parse(accountId), amount);
+            await Clients.Groups(lotId.ToString()).SendAsync("ReceiveBid", lotId, accountId, amount);
+        
+            _timerService.StartTimer(lotId, async () =>
+            {
+                await _lobbyService.FinishAuction(lotId, Guid.Parse(accountId), amount);
+                await Clients.Groups(lotId.ToString(), Lobby).SendAsync("ReceiveFinishLot", lotId, accountId, amount);
+            });
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error with deleting auction lot with account: {UserID}", accountId);
+            await Clients.Caller.SendAsync($"Error: {e} with lot id: {lotId}");
+        }
     }
 }

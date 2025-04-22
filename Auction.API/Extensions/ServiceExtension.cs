@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using Auction.API.Options;
+using Auction.BL.Interface;
+using Auction.BL.Services;
 using Auction.Data;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +25,7 @@ public static class ServiceExtension
 
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
     {
+        services.AddSingleton<IAuctionTimerService, AuctionTimerService>();
         services.AddSingleton<AppDbContext>();
         return services;
     }

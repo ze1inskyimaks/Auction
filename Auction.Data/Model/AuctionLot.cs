@@ -6,6 +6,7 @@ public class AuctionLot
     public required string Name { get; set; }
     public string? Description { get; set; }
     public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
+    public string JobId { get; set; } = String.Empty;
     
     public Guid OwnerId { get; set; }
     public Account? OwnerAccount { get; set; }
