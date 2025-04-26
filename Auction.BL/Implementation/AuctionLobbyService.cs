@@ -58,7 +58,7 @@ public class AuctionLobbyService : IAuctionLobbyService
                 $"but starter price {lot.StartPrice} or current price {lot.CurrentPrice} bigger!");
         }
 
-        if (lot.OwnerId == accountId || lot.CurrentWinnerId == accountId)
+        if (lot.OwnerId == accountId.ToString() || lot.CurrentWinnerId == accountId)
         {
             throw new Exception(
                 $"Error with account id: {accountId}, because owner of lot {lot.OwnerId} " +
@@ -109,7 +109,7 @@ public class AuctionLobbyService : IAuctionLobbyService
         var account = await _userManager.FindByIdAsync(accountId.ToString());
 
         lot.EndPrice = amount;
-        lot.WinnerId = accountId;
+        lot.WinnerId = accountId.ToString();
         lot.WinnerAccount = account;
         lot.Status = Status.Sold;
 

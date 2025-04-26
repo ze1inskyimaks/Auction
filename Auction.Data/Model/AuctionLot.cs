@@ -16,7 +16,7 @@ public class AuctionLot
     public string JobId { get; set; } = String.Empty;
     
     [Required]
-    public Guid OwnerId { get; set; }
+    public string OwnerId { get; set; }
     public Account? OwnerAccount { get; set; }
 
     public Guid? CurrentWinnerId { get; set; }
@@ -29,7 +29,7 @@ public class AuctionLot
     [Required]
     public double StartPrice { get; set; } = 0;
     public double EndPrice { get; set; } = 0;
-    public Guid? WinnerId { get; set; }
+    public string? WinnerId { get; set; }
     public Account? WinnerAccount { get; set; }
 
     public Status Status { get; set; } = Status.Active;

@@ -12,7 +12,7 @@ public static class AuctionLotMapping
             Name = lotInput.Name,
             Description = lotInput.Description,
             StartTime = lotInput.StartTime,
-            OwnerId = Guid.Parse(ownerAccount.Id),
+            OwnerId = ownerAccount.Id,
             OwnerAccount = ownerAccount,
             StartPrice = lotInput.StartPrice,
         };

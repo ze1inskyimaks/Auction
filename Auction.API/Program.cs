@@ -2,18 +2,25 @@ using Auction.API.Extensions;
 using Auction.API.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtTokenOptions>();
 
-builder.Services
+builder.Services.AddAuthorization().AddAuthentication();
+builder.Services.AddSignalR();
+builder.Services.AddControllers();
+
+builder
+    .AddLogging()
+    .Services
     .AddDataBase(builder.Configuration)
     .AddPasswordOptions()
     .AddDependencyInjection()
-    .AddJwtToken(builder.Configuration, jwtSettings!);
+    .Configure<JwtTokenOptions>(builder.Configuration.GetSection("Jwt"))
+    .AddJwtToken(builder.Configuration)
+    .AddSwagger();
 
 var app = builder.Build();
 
-app = ServiceExtension.AddApplicationSettings(app);
-
 await RoleInitializer.EnsureRolesAsync(app.Services);
+
+app = ServiceExtension.AddApplicationSettings(app);
 
 app.Run();

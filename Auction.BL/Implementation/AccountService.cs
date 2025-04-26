@@ -1,25 +1,23 @@
-﻿using Auction.BL.Model.Account;
+﻿using Auction.BL.Interface;
+using Auction.BL.Model.Account;
 using Auction.BL.Model.Account.DTO;
 using Auction.BL.Model.Mapping;
-using Auction.Data;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Identity;
 
 namespace Auction.BL.Implementation;
 
-public class AccountService
+public class AccountService : IAccountService
 {
     private readonly UserManager<Account> _userManager;
     private readonly JwtService _jwtService;
-    private readonly AppDbContext _context;
     private readonly RoleManager<IdentityRole> _roleManager;
 
-    public AccountService(UserManager<Account> userManager, JwtService jwtService, RoleManager<IdentityRole> roleManager, AppDbContext context)
+    public AccountService(UserManager<Account> userManager, JwtService jwtService, RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
         _jwtService = jwtService;
         _roleManager = roleManager;
-        _context = context;
     }
 
     public async Task<string?> Login(AccountDTO accountDto)

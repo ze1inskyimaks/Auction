@@ -29,6 +29,8 @@ public class AuctionApi : ControllerBase
     public async Task<IActionResult> CreateAuctionLot([FromBody] AuctionLotDtoInput lotInput)
     {
         //TODO: Need to add photo property to Auction Lot
+        //TODO: Need to add elastic search or something else
+        //TODO: Need to add all dependency injection system
         //TODO: Need to add pay system
         var user = await _userManager.GetUserAsync(User);
         

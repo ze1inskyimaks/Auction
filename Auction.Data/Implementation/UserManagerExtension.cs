@@ -37,7 +37,7 @@ public static class UserManagerExtension
         if (acc is null)
             return;
 
-        lot.OwnerId = Guid.Parse(acc.Id);
+        lot.OwnerId = acc.Id;
         acc.HostedLots?.Add(lot);
 
         context.AuctionLots.Add(lot);
@@ -55,7 +55,7 @@ public static class UserManagerExtension
         if (acc is null)
             return;
 
-        lot.OwnerId = Guid.Parse(acc.Id);
+        lot.OwnerId = acc.Id;
         acc.WinningLots?.Add(lot);
 
         context.AuctionLots.Add(lot);
@@ -77,7 +77,7 @@ public static class UserManagerExtension
         if (lot is not null)
         {
             acc.HostedLots!.Remove(lot);
-            lot.OwnerId = Guid.Empty;            // або null, якщо тип змінний
+            lot.OwnerId = String.Empty;            // або null, якщо тип змінний
             lot.OwnerAccount = null;
 
             await context.SaveChangesAsync();

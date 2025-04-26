@@ -59,7 +59,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 
             entity.HasOne(a => a.AuctionLot)
                 .WithMany(b => b.AuctionHistories)
-                .HasForeignKey(a => a.AuctionLot)
+                .HasForeignKey(a => a.LotId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
         });

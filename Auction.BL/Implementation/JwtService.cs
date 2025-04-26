@@ -4,7 +4,7 @@ using System.Text;
 using Auction.API.Options;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Auction.BL.Implementation;
@@ -15,11 +15,12 @@ public class JwtService
     private readonly string _key;
     private readonly int _expiresInHours;
     
-    public JwtService(IConfiguration configuration, UserManager<Account> userManager, JwtTokenOptions tokenOptions)
+    public JwtService(UserManager<Account> userManager, IOptions<JwtTokenOptions> tokenOptions)
     {
         _userManager = userManager;
-        _key = tokenOptions.Key;
-        _expiresInHours = tokenOptions.ExpiresInHours;
+        var options = tokenOptions.Value;
+        _key = options.Key;
+        _expiresInHours = options.ExpiresInHours;
     }
     
     public async Task<string> GenerateJwtToken(Account account)
@@ -30,7 +31,7 @@ public class JwtService
         var roles = await _userManager.GetRolesAsync(account);
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, account.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, account.Id),
             new Claim(ClaimTypes.Name, account.UserName!),
             new Claim(ClaimTypes.Email, account.Email!)
         };

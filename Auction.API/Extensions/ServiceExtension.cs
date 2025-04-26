@@ -1,9 +1,13 @@
 ﻿using System.Text;
 using Auction.API.Options;
+using Auction.BL.Implementation;
 using Auction.BL.Interface;
 using Auction.BL.Services;
 using Auction.Data;
+using Auction.Data.Implementation;
+using Auction.Data.Interface;
 using Auction.Data.Model;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,15 +24,32 @@ public static class ServiceExtension
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString));
         
+        services.AddHangfire(config =>
+            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
+        services.AddHangfireServer();
+        
         return services;
     }
 
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
     {
+        services.AddScoped<IAuctionLotService, AuctionLotService>();
+        services.AddScoped<IAuctionLotRepository, AuctionLotRepository>();
+        services.AddScoped<IAuctionHistoryRepository, AuctionHistoryRepository>();
+        services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IAuctionLobbyService, AuctionLobbyService>();
+        services.AddScoped<JwtService>();
+        
         services.AddSingleton<IAuctionTimerService, AuctionTimerService>();
-        services.AddSingleton<AppDbContext>();
         return services;
     }
+    public static IServiceCollection AddSwagger(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
+        return services;
+    }
+    
 
     public static IServiceCollection AddPasswordOptions(this IServiceCollection services)
     {
@@ -55,8 +76,9 @@ public static class ServiceExtension
         return services;
     }
 
-    public static IServiceCollection AddJwtToken(this IServiceCollection services, IConfiguration configuration, JwtTokenOptions tokenOptions)
+    public static IServiceCollection AddJwtToken(this IServiceCollection services, IConfiguration configuration)
     {
+        var tokenOptions = configuration.GetSection("Jwt").Get<JwtTokenOptions>();
         // 🔹 Налаштування автентифікації та JWT
         services.AddAuthentication(options =>
             {
@@ -97,6 +119,14 @@ public static class ServiceExtension
         return services;
     }
 
+    public static WebApplicationBuilder AddLogging(this WebApplicationBuilder builder)
+    {
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+        builder.Logging.AddDebug();
+        return builder;
+    }
+    
     public static WebApplication AddApplicationSettings(WebApplication app)
     {
         if (app.Environment.IsDevelopment())
@@ -106,11 +136,13 @@ public static class ServiceExtension
             app.UseSwaggerUI();
         }
 
-        app.UseAuthentication(); // 🔥 Має бути перед Authorization!
+        app.UseHttpsRedirection();
+        app.UseRouting();
+        app.UseAuthentication();
         app.UseAuthorization();
+        app.UseHangfireDashboard();
         app.MapHub<AuctionHub>("/auctionhub").RequireAuthorization();
         app.MapControllers();
-        app.UseHttpsRedirection();
 
         return app;
     }

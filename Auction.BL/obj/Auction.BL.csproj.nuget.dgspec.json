@@ -85,6 +85,10 @@
               "target": "Package",
               "version": "[8.1.0, )"
             },
+            "Swashbuckle.AspNetCore.SwaggerGen": {
+              "target": "Package",
+              "version": "[8.1.0, )"
+            },
             "Swashbuckle.AspNetCore.SwaggerUI": {
               "target": "Package",
               "version": "[8.1.0, )"
@@ -180,6 +184,10 @@
               "version": "[9.0.4, )"
             },
             "Swashbuckle.AspNetCore.Swagger": {
+              "target": "Package",
+              "version": "[8.1.0, )"
+            },
+            "Swashbuckle.AspNetCore.SwaggerGen": {
               "target": "Package",
               "version": "[8.1.0, )"
             },
