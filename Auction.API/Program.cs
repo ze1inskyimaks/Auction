@@ -24,3 +24,10 @@ await RoleInitializer.EnsureRolesAsync(app.Services);
 app = ServiceExtension.AddApplicationSettings(app);
 
 app.Run();
+
+/*{
+    "id": 0,
+    "userName": "string",
+        "email": "string@gmail.com",
+    "passwordHash": "stringG1"
+}*/

@@ -179,3 +179,7 @@ C:\Storage\BackEnd\Auction\Auction.UnitTests\obj\Debug\net9.0\refint\Auction.Uni
 C:\Storage\BackEnd\Auction\Auction.UnitTests\obj\Debug\net9.0\Auction.UnitTests.pdb
 C:\Storage\BackEnd\Auction\Auction.UnitTests\obj\Debug\net9.0\Auction.UnitTests.genruntimeconfig.cache
 C:\Storage\BackEnd\Auction\Auction.UnitTests\obj\Debug\net9.0\ref\Auction.UnitTests.dll
+C:\Storage\BackEnd\Auction\Auction.UnitTests\bin\Debug\net9.0\Castle.Core.dll
+C:\Storage\BackEnd\Auction\Auction.UnitTests\bin\Debug\net9.0\FluentAssertions.dll
+C:\Storage\BackEnd\Auction\Auction.UnitTests\bin\Debug\net9.0\Moq.dll
+C:\Storage\BackEnd\Auction\Auction.UnitTests\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll

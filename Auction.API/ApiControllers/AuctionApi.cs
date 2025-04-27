@@ -5,6 +5,7 @@ using Auction.Data.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Auction.API.ApiControllers;
 
@@ -15,23 +16,20 @@ public class AuctionApi : ControllerBase
 {
     private readonly UserManager<Account> _userManager;
     private readonly IAuctionLotService _lotService;
-    private readonly AuctionHub _auctionHub;
+    private readonly IHubContext<AuctionHub> _hubContext;
+    private const string Lobby = "lobby";
 
-    public AuctionApi(UserManager<Account> userManager, IAuctionLotService lotService, AuctionHub auctionHub)
+    public AuctionApi(UserManager<Account> userManager, IAuctionLotService lotService, IHubContext<AuctionHub> hubContext)
     {
         _userManager = userManager;
         _lotService = lotService;
-        _auctionHub = auctionHub;
+        _hubContext = hubContext;
     }
     
     [Authorize(Roles = "USER")]
     [HttpPost]
     public async Task<IActionResult> CreateAuctionLot([FromBody] AuctionLotDtoInput lotInput)
     {
-        //TODO: Need to add photo property to Auction Lot
-        //TODO: Need to add elastic search or something else
-        //TODO: Need to add all dependency injection system
-        //TODO: Need to add pay system
         var user = await _userManager.GetUserAsync(User);
         
         if (user == null)
@@ -44,8 +42,12 @@ public class AuctionApi : ControllerBase
         }
 
         var lot = result.Value;
-        await _auctionHub.CreateAuctionLot(lot!); 
-
+        await _hubContext.Clients.Groups(Lobby).SendAsync("ReceiveNewLot", new
+        {
+            lot!.Id,
+            lot.Name,
+            lot.StartPrice
+        });
         return Ok();
     }
     
@@ -65,7 +67,12 @@ public class AuctionApi : ControllerBase
         }
 
         var lot = result.Value;
-        await _auctionHub.ChangeAuctionLot(lot!); 
+        await _hubContext.Clients.Groups(Lobby, lot!.Id.ToString()).SendAsync("ReceiveNewLot", new
+        {
+            lot.Id,
+            lot.Name,
+            lot.StartPrice
+        }); 
 
         return Ok();
     }
@@ -86,8 +93,19 @@ public class AuctionApi : ControllerBase
         }
 
         var lot = result.Value;
-        await _auctionHub.DeleteAuctionLot(lot!); 
+        await _hubContext.Clients.Groups(Lobby, lot!.Id.ToString()).SendAsync("ReceiveDeletedLot", new
+        {
+            lot.Id
+        }); 
 
         return Ok();
     }
 }
+
+//TODO: Set all time in utsnow
+
+//TODO: Need to add frontend part(blazor page with signalR integration)
+//TODO: Need to add photo property to Auction Lot
+//TODO: Need to add elastic search or something else
+//TODO: Need to add all dependency injection system
+//TODO: Need to add pay system

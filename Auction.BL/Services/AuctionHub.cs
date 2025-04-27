@@ -51,35 +51,6 @@ public class AuctionHub : Hub
         await Clients.Groups(lotId).SendAsync("GetAuctionLot", await _lotService.GetAuctionLot(Guid.Parse(lotId)));
     }
     
-
-    public async Task CreateAuctionLot(AuctionLotDtoOutput lot)
-    {
-        await Clients.Groups(Lobby).SendAsync("ReceiveNewLot", new
-        {
-            lot.Id,
-            lot.Name,
-            lot.StartPrice
-        });
-    }
-    
-    public async Task ChangeAuctionLot(AuctionLotDtoOutput lot)
-    {
-        await Clients.Groups(Lobby, lot.Id.ToString()).SendAsync("ReceiveNewLot", new
-        {
-            lot.Id,
-            lot.Name,
-            lot.StartPrice
-        });
-    }
-
-    public async Task DeleteAuctionLot(AuctionLotDtoOutput lotId)
-    {
-        await Clients.Groups(Lobby, lotId.Id.ToString()).SendAsync("ReceiveDeletedLot", new
-        {
-            lotId.Id
-        });
-    }
-    
     public async Task PlaceBid(Guid lotId, double amount)
     {
         var accountId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
