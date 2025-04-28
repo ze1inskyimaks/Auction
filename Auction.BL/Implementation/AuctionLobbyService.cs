@@ -1,9 +1,11 @@
 ﻿using Auction.BL.Interface;
+using Auction.BL.Services;
 using Auction.Data;
 using Auction.Data.Implementation;
 using Auction.Data.Interface;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Auction.BL.Implementation;
 
@@ -13,13 +15,16 @@ public class AuctionLobbyService : IAuctionLobbyService
     private readonly IAuctionHistoryRepository _historyRepository;
     private readonly UserManager<Account> _userManager;
     private readonly AppDbContext _context;
+    private readonly IHubContext<AuctionHub> _hubContext;
+    private const string Lobby = "lobby";
 
-    public AuctionLobbyService(IAuctionLotRepository lotRepository, IAuctionHistoryRepository historyRepository, UserManager<Account> userManager, AppDbContext context)
+    public AuctionLobbyService(IAuctionLotRepository lotRepository, IAuctionHistoryRepository historyRepository, UserManager<Account> userManager, AppDbContext context, IHubContext<AuctionHub> hubContext)
     {
         _lotRepository = lotRepository;
         _historyRepository = historyRepository;
         _userManager = userManager;
         _context = context;
+        _hubContext = hubContext;
     }
     public async Task StartAuction(Guid lotId)
     {
@@ -36,6 +41,9 @@ public class AuctionLobbyService : IAuctionLobbyService
 
         lot.Status = Status.Open;
         await _lotRepository.ChangeLot(lot);
+
+        await _hubContext.Clients.Groups(Lobby, lot.Id.ToString())
+            .SendAsync("ReceiveStartOfAuction", lotId);
     }
 
     public async Task Bid(Guid lotId, Guid accountId, double amount)
