@@ -22,7 +22,7 @@ public class IdentityApi : ControllerBase
     }
     
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody]AccountDTO accountDto)
+    public async Task<IActionResult> Login([FromBody]AccountLoginDTO accountDto)
     {
         var token = await _accountService.Login(accountDto);
 
@@ -43,7 +43,7 @@ public class IdentityApi : ControllerBase
     }
     
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody]AccountDTO accountDto, uint role = default)
+    public async Task<IActionResult> Register([FromBody]AccountRegistrationDTO accountDto, uint role = default)
     {
         await _accountService.Register(accountDto, role);
         return Ok();

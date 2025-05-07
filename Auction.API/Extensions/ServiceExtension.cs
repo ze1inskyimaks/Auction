@@ -49,7 +49,20 @@ public static class ServiceExtension
         services.AddSwaggerGen();
         return services;
     }
-    
+
+    public static IServiceCollection AddCorsInizializer(this IServiceCollection service)
+    {
+        service.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
+        return service;
+    }
 
     public static IServiceCollection AddPasswordOptions(this IServiceCollection services)
     {
@@ -138,6 +151,7 @@ public static class ServiceExtension
 
         app.UseHttpsRedirection();
         app.UseRouting();
+        app.UseCors();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseHangfireDashboard();

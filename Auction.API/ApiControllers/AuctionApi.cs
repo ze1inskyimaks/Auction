@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Auction.API.ApiControllers;
 
-[Authorize]
 [ApiController]
 [Route("api/v1/auction")]
 public class AuctionApi : ControllerBase
@@ -100,10 +99,25 @@ public class AuctionApi : ControllerBase
 
         return Ok();
     }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetAuctionLotById(Guid id)
+    {
+        var result = await _lotService.GetAuctionLot(id);
+        return Ok(result);
+    }
+    
+    [HttpGet]
+    public IActionResult GetActiveLot()
+    {
+        var activeList = _lotService.GetListOfActiveAuctionLots();
+
+        return Ok(activeList);
+    }
 }
 
+//TODO: Add a cache like a redis in GetActiveAuctionLot function
 //TODO: Set all time in utsnow
-
 //TODO: Need to add frontend part(blazor page with signalR integration)
 //TODO: Need to add photo property to Auction Lot
 //TODO: Need to add elastic search or something else

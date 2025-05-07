@@ -15,6 +15,7 @@ builder
     .AddDependencyInjection()
     .Configure<JwtTokenOptions>(builder.Configuration.GetSection("Jwt"))
     .AddJwtToken(builder.Configuration)
+    .AddCorsInizializer()
     .AddSwagger();
 
 var app = builder.Build();
@@ -29,5 +30,5 @@ app.Run();
     "id": 0,
     "userName": "string",
         "email": "string@gmail.com",
-    "passwordHash": "stringG1"
+    "password": "stringG1"
 }*/

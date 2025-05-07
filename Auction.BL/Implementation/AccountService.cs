@@ -20,7 +20,7 @@ public class AccountService : IAccountService
         _roleManager = roleManager;
     }
 
-    public async Task<string?> Login(AccountDTO accountDto)
+    public async Task<string?> Login(AccountLoginDTO accountDto)
     {
         // Знайти користувача за його ім'ям
         var acc = await _userManager.FindByEmailAsync(accountDto.Email);
@@ -30,7 +30,7 @@ public class AccountService : IAccountService
         }
 
         // Перевірка пароля для знайденого користувача
-        var passwordValid = await _userManager.CheckPasswordAsync(acc, accountDto.PasswordHash);
+        var passwordValid = await _userManager.CheckPasswordAsync(acc, accountDto.Password);
         if (!passwordValid)
         {
             throw new Exception("Wrong password");
@@ -39,16 +39,16 @@ public class AccountService : IAccountService
         return await _jwtService.GenerateJwtToken(acc);
     }
 
-    public async Task Register(AccountDTO accountDto, uint role)
+    public async Task Register(AccountRegistrationDTO accountDto, uint role)
     {
         if (await _userManager.FindByEmailAsync(accountDto.Email) != null)
         {
             throw new Exception("Користувач із таким емейлом вже існує.");
         }
         
-        var account = AccountMapping.ToModel(accountDto);
+        var account = AccountMapping.ToModelRegistration(accountDto);
 
-        var result = await _userManager.CreateAsync(account, accountDto.PasswordHash);
+        var result = await _userManager.CreateAsync(account, accountDto.Password);
         if (!result.Succeeded)
         {
             throw new Exception("Не вдалося створити користувача: " +
