@@ -78,7 +78,8 @@ public class AuctionLobbyService : IAuctionLobbyService
 
         if (latestHistoryNumber is null)
         {
-            throw new Exception("Error with history number, his is null.");
+            /*throw new Exception("Error with history number, his is null.");*/
+            latestHistoryNumber = 0;
         }
 
         var newHistoryNumber = latestHistoryNumber + 1;
@@ -95,8 +96,8 @@ public class AuctionLobbyService : IAuctionLobbyService
         lot.CurrentWinnerId = accountId;
         lot.CurrentPrice = amount;
         lot.LastBitTime = DateTime.Now;
-        lot.AuctionHistoryId!.Add(log.Id);
-        lot.AuctionHistories!.Add(log);
+        //lot.AuctionHistoryId!.Add(log.Id);
+        //lot.AuctionHistories!.Add(log);
         
         await _lotRepository.ChangeLot(lot);
     }

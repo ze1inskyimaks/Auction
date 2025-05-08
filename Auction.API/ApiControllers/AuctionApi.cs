@@ -47,7 +47,7 @@ public class AuctionApi : ControllerBase
             lot.Name,
             lot.StartPrice
         });
-        return Ok();
+        return Ok(lot.Id);
     }
     
     [Authorize(Roles = "USER")]
@@ -73,7 +73,7 @@ public class AuctionApi : ControllerBase
             lot.StartPrice
         }); 
 
-        return Ok();
+        return Ok(lot.Id);
     }
     
     [Authorize(Roles = "USER")]

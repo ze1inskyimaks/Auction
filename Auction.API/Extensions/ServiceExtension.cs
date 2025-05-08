@@ -54,12 +54,19 @@ public static class ServiceExtension
     {
         service.AddCors(options =>
         {
-            options.AddDefaultPolicy(policy =>
+            options.AddPolicy("AllowAll", policy =>
             {
-                policy.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
+                policy.WithOrigins("http://localhost:3000")  // Вказуємо конкретний домен фронтенду
+                    .AllowCredentials()  // Дозволяємо куки
+                    .AllowAnyHeader()    // Дозволяємо будь-які заголовки
+                    .AllowAnyMethod()    // Дозволяємо будь-які методи
+                    .AllowCredentials();
             });
+        });
+        service.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
         return service;
     }
@@ -151,7 +158,7 @@ public static class ServiceExtension
 
         app.UseHttpsRedirection();
         app.UseRouting();
-        app.UseCors();
+        app.UseCors("AllowAll");
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseHangfireDashboard();

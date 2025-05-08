@@ -39,7 +39,7 @@ public class IdentityApi : ControllerBase
         };
         Response.Cookies.Append("boby", token, cookieOptions);
         
-        return Ok(new { message = "Logged in successfully" });
+        return Ok(new { token, message = "Logged in successfully" });
     }
     
     [HttpPost("register")]
