@@ -38,6 +38,7 @@ public static class ServiceExtension
         services.AddScoped<IAuctionHistoryRepository, AuctionHistoryRepository>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IAuctionLobbyService, AuctionLobbyService>();
+        services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<JwtService>();
         
         services.AddSingleton<IAuctionTimerService, AuctionTimerService>();
@@ -47,6 +48,16 @@ public static class ServiceExtension
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
+        return services;
+    }
+
+    public static IServiceCollection AddRedis(this IServiceCollection services)
+    {
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = "localhost:6379";
+            options.InstanceName = "MyRedisInstance";
+        });
         return services;
     }
 

@@ -95,7 +95,7 @@ public class AuctionLobbyService : IAuctionLobbyService
 
         lot.CurrentWinnerId = accountId;
         lot.CurrentPrice = amount;
-        lot.LastBitTime = DateTime.Now;
+        lot.LastBitTime = DateTime.UtcNow;
         //lot.AuctionHistoryId!.Add(log.Id);
         //lot.AuctionHistories!.Add(log);
         

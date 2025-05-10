@@ -11,5 +11,5 @@ public class AuctionHistory
 
     public Guid BidderId { get; set; }
     public double BidAmount { get; set; }
-    public DateTime BidTime { get; set; } = DateTime.Now;
+    public DateTime BidTime { get; set; } = DateTime.UtcNow;
 }

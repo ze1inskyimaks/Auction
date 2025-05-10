@@ -12,7 +12,7 @@ public class AuctionLot
     
     [StringLength(500)]
     public string? Description { get; set; }
-    public DateTime StartTime { get; set; } = DateTime.Now.AddHours(1);
+    public DateTime StartTime { get; set; } = DateTime.UtcNow.AddHours(1);
     public string JobId { get; set; } = String.Empty;
     
     [Required]
@@ -34,6 +34,6 @@ public class AuctionLot
 
     public Status Status { get; set; } = Status.Active;
     
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

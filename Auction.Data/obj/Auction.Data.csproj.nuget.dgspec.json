@@ -73,6 +73,10 @@
               "target": "Package",
               "version": "[9.0.4, )"
             },
+            "Microsoft.Extensions.Caching.StackExchangeRedis": {
+              "target": "Package",
+              "version": "[9.0.2, )"
+            },
             "Swashbuckle.AspNetCore.Swagger": {
               "target": "Package",
               "version": "[8.1.0, )"

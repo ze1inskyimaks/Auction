@@ -1,5 +1,7 @@
-﻿using Auction.BL.Interface;
+﻿using Auction.BL.Implementation;
+using Auction.BL.Interface;
 using Auction.BL.Model.AuctionLot;
+using Auction.BL.Model.Mapping;
 using Auction.BL.Services;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -16,13 +18,15 @@ public class AuctionApi : ControllerBase
     private readonly UserManager<Account> _userManager;
     private readonly IAuctionLotService _lotService;
     private readonly IHubContext<AuctionHub> _hubContext;
+    private readonly ICacheService _cacheService;
     private const string Lobby = "lobby";
 
-    public AuctionApi(UserManager<Account> userManager, IAuctionLotService lotService, IHubContext<AuctionHub> hubContext)
+    public AuctionApi(UserManager<Account> userManager, IAuctionLotService lotService, IHubContext<AuctionHub> hubContext, ICacheService cacheService)
     {
         _userManager = userManager;
         _lotService = lotService;
         _hubContext = hubContext;
+        _cacheService = cacheService;
     }
     
     [Authorize(Roles = "USER")]
@@ -47,6 +51,9 @@ public class AuctionApi : ControllerBase
             lot.Name,
             lot.StartPrice
         });
+        
+        _ = _cacheService.CacheActiveAuctionLotsAsync();
+        
         return Ok(lot.Id);
     }
     
@@ -73,6 +80,8 @@ public class AuctionApi : ControllerBase
             lot.StartPrice
         }); 
 
+        _ = _cacheService.CacheActiveAuctionLotsAsync();
+        
         return Ok(lot.Id);
     }
     
@@ -97,7 +106,9 @@ public class AuctionApi : ControllerBase
             lot.Id
         }); 
 
-        return Ok();
+        _ = _cacheService.CacheActiveAuctionLotsAsync();
+        
+        return NoContent();
     }
 
     [HttpGet("{id}")]
@@ -108,18 +119,19 @@ public class AuctionApi : ControllerBase
     }
     
     [HttpGet]
-    public IActionResult GetActiveLot()
+    public async Task<IActionResult> GetActiveLot()
     {
+        var data = await _cacheService.GetCachedActiveAuctionLotsAsync();
+        if (data is not null)
+        {
+            return Ok(data.Select(AuctionLotMapping.ToDto));
+        }
+        _ = _cacheService.CacheActiveAuctionLotsAsync();
         var activeList = _lotService.GetListOfActiveAuctionLots();
-
         return Ok(activeList);
     }
 }
 
-//TODO: Add a cache like a redis in GetActiveAuctionLot function
-//TODO: Set all time in utsnow
-//TODO: Need to add frontend part(blazor page with signalR integration)
 //TODO: Need to add photo property to Auction Lot
 //TODO: Need to add elastic search or something else
-//TODO: Need to add all dependency injection system
 //TODO: Need to add pay system

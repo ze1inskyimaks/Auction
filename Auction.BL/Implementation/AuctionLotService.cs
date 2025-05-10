@@ -92,7 +92,7 @@ public class AuctionLotService : IAuctionLotService
             lotById.Name = lotDtoInput.Name;
             lotById.Description = lotDtoInput.Description;
             lotById.StartPrice = lotDtoInput.StartPrice;
-            lotById.UpdatedAt = DateTime.Now;    
+            lotById.UpdatedAt = DateTime.UtcNow;    
             
             var lot = await _lotRepository.ChangeLot(lotById);
             

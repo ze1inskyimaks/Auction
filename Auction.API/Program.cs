@@ -16,7 +16,8 @@ builder
     .Configure<JwtTokenOptions>(builder.Configuration.GetSection("Jwt"))
     .AddJwtToken(builder.Configuration)
     .AddCorsInizializer()
-    .AddSwagger();
+    .AddSwagger()
+    .AddRedis();
 
 var app = builder.Build();
 

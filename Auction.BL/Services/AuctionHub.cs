@@ -72,6 +72,9 @@ public class AuctionHub : Hub
 
                     await _hubContext.Clients.Groups(lotId.ToString(), Lobby)
                         .SendAsync("ReceiveFinishLot", lotId, accountId, amount);
+
+                    var scopedCache = scope.ServiceProvider.GetRequiredService<ICacheService>();
+                    await scopedCache.CacheActiveAuctionLotsAsync();
                     
                     _logger.LogInformation($"Аукціон для лота {lotId} успішно завершено з користувачем {accountId}");
                 }

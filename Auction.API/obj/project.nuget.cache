@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "a5iIcMp8fOI=",
+  "dgSpecHash": "Zmo4Z6CV+3Q=",
   "success": true,
   "projectFilePath": "C:\\Storage\\BackEnd\\Auction\\Auction.API\\Auction.API.csproj",
   "expectedPackageFiles": [
@@ -35,6 +35,7 @@
     "C:\\Users\\_\\.nuget\\packages\\microsoft.entityframeworkcore.sqlserver\\9.0.4\\microsoft.entityframeworkcore.sqlserver.9.0.4.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\9.0.4\\microsoft.extensions.caching.abstractions.9.0.4.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\microsoft.extensions.caching.memory\\9.0.4\\microsoft.extensions.caching.memory.9.0.4.nupkg.sha512",
+    "C:\\Users\\_\\.nuget\\packages\\microsoft.extensions.caching.stackexchangeredis\\9.0.2\\microsoft.extensions.caching.stackexchangeredis.9.0.2.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.4\\microsoft.extensions.configuration.abstractions.9.0.4.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.4\\microsoft.extensions.dependencyinjection.9.0.4.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.4\\microsoft.extensions.dependencyinjection.abstractions.9.0.4.nupkg.sha512",
@@ -60,6 +61,8 @@
     "C:\\Users\\_\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\newtonsoft.json\\11.0.1\\newtonsoft.json.11.0.1.nupkg.sha512",
+    "C:\\Users\\_\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "C:\\Users\\_\\.nuget\\packages\\stackexchange.redis\\2.8.37\\stackexchange.redis.2.8.37.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\8.1.0\\swashbuckle.aspnetcore.swagger.8.1.0.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\8.1.0\\swashbuckle.aspnetcore.swaggergen.8.1.0.nupkg.sha512",
     "C:\\Users\\_\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\8.1.0\\swashbuckle.aspnetcore.swaggerui.8.1.0.nupkg.sha512",
