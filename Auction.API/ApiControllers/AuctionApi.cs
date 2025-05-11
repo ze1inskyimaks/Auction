@@ -1,5 +1,4 @@
-﻿using Auction.BL.Implementation;
-using Auction.BL.Interface;
+﻿using Auction.BL.Interface;
 using Auction.BL.Model.AuctionLot;
 using Auction.BL.Model.Mapping;
 using Auction.BL.Services;
@@ -31,14 +30,14 @@ public class AuctionApi : ControllerBase
     
     [Authorize(Roles = "USER")]
     [HttpPost]
-    public async Task<IActionResult> CreateAuctionLot([FromBody] AuctionLotDtoInput lotInput)
+    public async Task<IActionResult> CreateAuctionLot([FromForm] AuctionLotDtoInput lotInput, [FromForm] IFormFile? file)
     {
         var user = await _userManager.GetUserAsync(User);
         
         if (user == null)
             return Unauthorized();
 
-        var result = await _lotService.CreateAuctionLot(lotInput, user);
+        var result = await _lotService.CreateAuctionLot(lotInput, user, file);
         if (result.IsFailure)
         {
             return Problem("Error with creating auction lot: {error}", result.Error);

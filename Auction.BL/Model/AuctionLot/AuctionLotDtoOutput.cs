@@ -7,6 +7,8 @@ public class AuctionLotDtoOutput
     public Guid Id { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }
+    public string? LinkToImage { get; set; }
+
     public DateTime StartTime { get; set; }
     
     public string OwnerId { get; set; }

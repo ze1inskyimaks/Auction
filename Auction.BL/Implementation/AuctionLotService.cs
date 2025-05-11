@@ -7,6 +7,7 @@ using Auction.Data.Implementation;
 using Auction.Data.Interface;
 using Auction.Data.Model;
 using Hangfire;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -19,20 +20,33 @@ public class AuctionLotService : IAuctionLotService
     private readonly IAuctionLobbyService _lobbyService;
     private readonly UserManager<Account> _userManager;
     private readonly AppDbContext _context;
+    private readonly CloudinaryService _cloudinaryService;
 
-    public AuctionLotService(IAuctionLotRepository lotRepository, ILogger<AuctionLotService> logger, IAuctionLobbyService lobbyService, UserManager<Account> userManager, AppDbContext context)
+    public AuctionLotService(IAuctionLotRepository lotRepository, ILogger<AuctionLotService> logger, IAuctionLobbyService lobbyService, UserManager<Account> userManager, AppDbContext context, CloudinaryService cloudinaryService)
     {
         _lotRepository = lotRepository;
         _logger = logger;
         _lobbyService = lobbyService;
         _userManager = userManager;
         _context = context;
+        _cloudinaryService = cloudinaryService;
     }
-    public async Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lotDtoInput, Account account)
+    public async Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lotDtoInput, Account account, IFormFile? file = null)
     {
         try
-        { 
-            var lot = await _lotRepository.CreateLot(AuctionLotMapping.ToAuctionLot(lotDtoInput, account));
+        {
+            string? link = null;
+            if (file is not null)
+            {
+                link = await _cloudinaryService.UploadImageAsync(file);
+            }
+
+            if (link is null)
+            {
+                throw new Exception("Error with uploading file");
+            }
+            
+            var lot = await _lotRepository.CreateLot(AuctionLotMapping.ToAuctionLot(lotDtoInput, account, link));
             
             var jobId = BackgroundJob.Schedule(
                 () => _lobbyService.StartAuction(lot.Id), 

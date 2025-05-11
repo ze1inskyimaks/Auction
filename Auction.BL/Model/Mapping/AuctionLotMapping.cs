@@ -4,13 +4,14 @@ namespace Auction.BL.Model.Mapping;
 
 public static class AuctionLotMapping
 {
-    public static Data.Model.AuctionLot ToAuctionLot(AuctionLotDtoInput lotInput, Data.Model.Account ownerAccount)
+    public static Data.Model.AuctionLot ToAuctionLot(AuctionLotDtoInput lotInput, Data.Model.Account ownerAccount, string? linkToImage = null)
     {
         var lot = new Data.Model.AuctionLot()
         {
             Id = Guid.Empty,
             Name = lotInput.Name,
             Description = lotInput.Description,
+            LinkToImage = linkToImage,
             StartTime = lotInput.StartTime,
             OwnerId = ownerAccount.Id,
             OwnerAccount = ownerAccount,
@@ -26,6 +27,7 @@ public static class AuctionLotMapping
             Id = lot.Id,
             Name = lot.Name,
             Description = lot.Description,
+            LinkToImage = lot.LinkToImage,
             StartTime = lot.StartTime,
             OwnerId = lot.OwnerId,
             CurrentWinnerId = lot.CurrentWinnerId,

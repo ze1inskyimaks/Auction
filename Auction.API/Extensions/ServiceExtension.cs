@@ -40,6 +40,7 @@ public static class ServiceExtension
         services.AddScoped<IAuctionLobbyService, AuctionLobbyService>();
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<JwtService>();
+        services.AddScoped<CloudinaryService>();
         
         services.AddSingleton<IAuctionTimerService, AuctionTimerService>();
         return services;
