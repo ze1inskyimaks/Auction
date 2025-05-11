@@ -25,7 +25,7 @@ public static class ServiceExtension
             options.UseSqlServer(connectionString));
         
         services.AddHangfire(config =>
-            config.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
+            config.UseSqlServerStorage(connectionString));
         services.AddHangfireServer();
         
         return services;

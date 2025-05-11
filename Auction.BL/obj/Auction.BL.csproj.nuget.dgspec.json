@@ -85,6 +85,10 @@
               "target": "Package",
               "version": "[9.0.2, )"
             },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
             "StackExchange.Redis": {
               "target": "Package",
               "version": "[2.8.37, )"
@@ -194,6 +198,10 @@
             "Microsoft.Extensions.Caching.StackExchangeRedis": {
               "target": "Package",
               "version": "[9.0.2, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.4, )"
             },
             "Swashbuckle.AspNetCore.Swagger": {
               "target": "Package",
