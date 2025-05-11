@@ -33,3 +33,5 @@ app.Run();
         "email": "string@gmail.com",
     "password": "stringG1"
 }*/
+
+//"Redis": "your-redis-instance.redis.cache.windows.net:6379,password=yourPassword,ssl=True,abortConnect=False"

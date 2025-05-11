@@ -19,7 +19,7 @@ public class AuctionHub : Hub
                       IAuctionLobbyService lobbyService, 
                       IAuctionTimerService timerService,
                       IServiceScopeFactory serviceScopeFactory,
-                      IHubContext<AuctionHub> hubContext)
+                      IHubContext<AuctionHub> hubContext            )
     {
         _logger = logger;
         _lobbyService = lobbyService;
