@@ -1,4 +1,4 @@
-﻿namespace Auction.Data.Model;
+namespace Auction.Data.Model;
 
 public class AuctionHistory
 {

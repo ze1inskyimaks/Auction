@@ -14,10 +14,11 @@ builder
     .AddPasswordOptions()
     .AddDependencyInjection()
     .Configure<JwtTokenOptions>(builder.Configuration.GetSection("Jwt"))
+    .Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"))
     .AddJwtToken(builder.Configuration)
     .AddCorsInizializer()
     .AddSwagger()
-    .AddRedis();
+    .AddRedis(builder.Configuration);
 
 var app = builder.Build();
 
@@ -35,3 +36,5 @@ app.Run();
 }*/
 
 //"Redis": "your-redis-instance.redis.cache.windows.net:6379,password=yourPassword,ssl=True,abortConnect=False"
+
+//http://localhost:5041/swagger/index.html

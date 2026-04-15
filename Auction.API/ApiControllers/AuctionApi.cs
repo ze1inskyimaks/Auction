@@ -1,6 +1,5 @@
 ﻿using Auction.BL.Interface;
 using Auction.BL.Model.AuctionLot;
-using Auction.BL.Model.Mapping;
 using Auction.BL.Services;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -40,7 +39,7 @@ public class AuctionApi : ControllerBase
         var result = await _lotService.CreateAuctionLot(lotInput, user, file);
         if (result.IsFailure)
         {
-            return Problem("Error with creating auction lot: {error}", result.Error);
+            return MapLotError(result.Error, "Error with creating auction lot");
         }
 
         var lot = result.Value;
@@ -68,7 +67,7 @@ public class AuctionApi : ControllerBase
         var result = await _lotService.ChangeAuctionLot(lotId, lotInput, user);
         if (result.IsFailure)
         {
-            return Problem("Error with creating auction lot: {error}", result.Error);
+            return MapLotError(result.Error, "Error with changing auction lot");
         }
 
         var lot = result.Value;
@@ -96,7 +95,7 @@ public class AuctionApi : ControllerBase
         var result = await _lotService.DeleteAuctionLot(lotId, user);
         if (result.IsFailure)
         {
-            return Problem("Error with creating auction lot: {error}", result.Error);
+            return MapLotError(result.Error, "Error with deleting auction lot");
         }
 
         var lot = result.Value;
@@ -123,11 +122,29 @@ public class AuctionApi : ControllerBase
         var data = await _cacheService.GetCachedActiveAuctionLotsAsync();
         if (data is not null)
         {
-            return Ok(data.Select(AuctionLotMapping.ToDto));
+            return Ok(data);
         }
         _ = _cacheService.CacheActiveAuctionLotsAsync();
         var activeList = _lotService.GetListOfActiveAuctionLots();
         return Ok(activeList);
+    }
+
+    private IActionResult MapLotError(string error, string fallbackMessage)
+    {
+        if (error.Contains("not owned this auction lot", StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        if (error.Contains("can`t change this auction lot", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("can't update this auction lot", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("can't delete this auction lot", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("Error with finding auction lot by Id", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { message = error });
+        }
+
+        return Problem(detail: $"{fallbackMessage}: {error}", statusCode: StatusCodes.Status500InternalServerError);
     }
 }
 

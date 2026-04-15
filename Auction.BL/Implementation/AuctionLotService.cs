@@ -39,11 +39,10 @@ public class AuctionLotService : IAuctionLotService
             if (file is not null)
             {
                 link = await _cloudinaryService.UploadImageAsync(file);
-            }
-
-            if (link is null)
-            {
-                throw new Exception("Error with uploading file");
+                if (link is null)
+                {
+                    throw new Exception("Error with uploading file");
+                }
             }
             
             var lot = await _lotRepository.CreateLot(AuctionLotMapping.ToAuctionLot(lotDtoInput, account, link));
@@ -77,17 +76,22 @@ public class AuctionLotService : IAuctionLotService
             {
                 throw new Exception($"Error with finding auction lot by Id: {lotId}");
             }
-            if (lotById.OwnerAccount != account)
+            if (lotById.OwnerId != account.Id)
             {
                 throw new Exception($"You are not owned this auction lot. Id: {lotId}, Account: {account}");
             }
 
-            if (lotById.Status != Status.Active && lotById.Status != Status.Cancelled)
+            var openWithoutBids = lotById.Status == Status.Open &&
+                                  lotById.CurrentWinnerId is null &&
+                                  lotById.CurrentPrice <= 0;
+
+            if (lotById.Status != Status.Active && lotById.Status != Status.Cancelled && !openWithoutBids)
             {
-                throw new Exception($"You are can`t change this auction lot, because his status: {lotById.Status}. Id: {lotId}, Account: {account}");
+                throw new Exception($"You can't update this auction lot because its status is {lotById.Status}. Id: {lotId}, Account: {account}");
             }
             
-            if (lotById.StartTime != lotDtoInput.StartTime)
+            var canChangeStartTime = lotById.Status == Status.Active || lotById.Status == Status.Cancelled;
+            if (canChangeStartTime && lotById.StartTime != lotDtoInput.StartTime)
             {
                 if (!string.IsNullOrEmpty(lotById.JobId))
                 {
@@ -106,7 +110,7 @@ public class AuctionLotService : IAuctionLotService
             lotById.Name = lotDtoInput.Name;
             lotById.Description = lotDtoInput.Description;
             lotById.StartPrice = lotDtoInput.StartPrice;
-            lotById.UpdatedAt = DateTime.UtcNow;    
+            lotById.UpdatedAt = DateTime.UtcNow;
             
             var lot = await _lotRepository.ChangeLot(lotById);
             
@@ -130,13 +134,18 @@ public class AuctionLotService : IAuctionLotService
                 throw new Exception($"Error with finding auction lot by Id: {lotId}");
             }
 
-            if (lotById.OwnerAccount != account)
+            if (lotById.OwnerId != account.Id)
             {
                 throw new Exception($"You are not owned this auction lot. Id: {lotId}, Account: {account}");
             }
-            if (lotById.Status != Status.Active && lotById.Status != Status.Cancelled)
+
+            var openWithoutBids = lotById.Status == Status.Open &&
+                                  lotById.CurrentWinnerId is null &&
+                                  lotById.CurrentPrice <= 0;
+
+            if (lotById.Status != Status.Active && lotById.Status != Status.Cancelled && !openWithoutBids)
             {
-                throw new Exception($"You are can`t change this auction lot, because his status: {lotById.Status}. Id: {lotId}, Account: {account}");
+                throw new Exception($"You can't delete this auction lot because its status is {lotById.Status}. Id: {lotId}, Account: {account}");
             }
             
             var lot = await _lotRepository.DeleteLot(lotById);

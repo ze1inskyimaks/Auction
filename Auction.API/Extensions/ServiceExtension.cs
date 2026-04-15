@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 namespace Auction.API.Extensions;
 
@@ -33,6 +34,7 @@ public static class ServiceExtension
 
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
     {
+        services.AddMemoryCache();
         services.AddScoped<IAuctionLotService, AuctionLotService>();
         services.AddScoped<IAuctionLotRepository, AuctionLotRepository>();
         services.AddScoped<IAuctionHistoryRepository, AuctionHistoryRepository>();
@@ -52,12 +54,19 @@ public static class ServiceExtension
         return services;
     }
 
-    public static IServiceCollection AddRedis(this IServiceCollection services)
+    public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddStackExchangeRedisCache(options =>
+        var redisConnection = configuration.GetSection("ConnectionStringsToRedis:Redis").Value ?? "localhost:6379";
+        var redisOptions = ConfigurationOptions.Parse(redisConnection, true);
+        redisOptions.AbortOnConnectFail = false;
+        redisOptions.ConnectTimeout = 500;
+        redisOptions.AsyncTimeout = 500;
+        redisOptions.SyncTimeout = 500;
+
+        services.AddStackExchangeRedisCache(cacheOptions =>
         {
-            options.Configuration = "localhost:6379";
-            options.InstanceName = "MyRedisInstance";
+            cacheOptions.ConfigurationOptions = redisOptions;
+            cacheOptions.InstanceName = "AuctionRedisInstance";
         });
         return services;
     }

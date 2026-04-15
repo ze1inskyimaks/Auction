@@ -1,14 +1,16 @@
-﻿using Auction.BL.Model.AuctionLot;
+using Auction.BL.Model.AuctionLot;
 
 namespace Auction.BL.Model.Mapping;
 
 public static class AuctionLotMapping
 {
-    public static Data.Model.AuctionLot ToAuctionLot(AuctionLotDtoInput lotInput, Data.Model.Account ownerAccount, string? linkToImage = null)
+    public static Data.Model.AuctionLot ToAuctionLot(
+        AuctionLotDtoInput lotInput,
+        Data.Model.Account ownerAccount,
+        string? linkToImage = null)
     {
-        var lot = new Data.Model.AuctionLot()
+        var lot = new Data.Model.AuctionLot
         {
-            Id = Guid.Empty,
             Name = lotInput.Name,
             Description = lotInput.Description,
             LinkToImage = linkToImage,
