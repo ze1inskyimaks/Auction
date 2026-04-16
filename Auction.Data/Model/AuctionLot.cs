@@ -20,6 +20,9 @@ public class AuctionLot
     public string OwnerId { get; set; }
     public Account? OwnerAccount { get; set; }
 
+    public Guid? CategoryId { get; set; }
+    public AuctionCategory? Category { get; set; }
+
     public Guid? CurrentWinnerId { get; set; }
     public double CurrentPrice { get; set; }
     public DateTime LastBitTime { get; set; } = DateTime.MaxValue;

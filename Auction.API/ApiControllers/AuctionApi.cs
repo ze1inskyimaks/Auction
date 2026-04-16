@@ -246,6 +246,7 @@ public class AuctionApi : ControllerBase
             error.Contains("cannot delete this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("cannot mark this auction lot as delivered", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("cannot cancel delivery for this auction lot", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("selected category does not exist or is inactive", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("can't update this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("can't delete this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("Error with finding auction lot by Id", StringComparison.OrdinalIgnoreCase))

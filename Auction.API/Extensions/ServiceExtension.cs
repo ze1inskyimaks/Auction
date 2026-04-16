@@ -39,6 +39,8 @@ public static class ServiceExtension
         services.AddScoped<IAuctionLotService, AuctionLotService>();
         services.AddScoped<IAuctionLotRepository, AuctionLotRepository>();
         services.AddScoped<IAuctionHistoryRepository, AuctionHistoryRepository>();
+        services.AddScoped<IAuctionCategoryRepository, AuctionCategoryRepository>();
+        services.AddScoped<ICategoryRequestRepository, CategoryRequestRepository>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IAuctionLobbyService, AuctionLobbyService>();
         services.AddScoped<ICacheService, CacheService>();

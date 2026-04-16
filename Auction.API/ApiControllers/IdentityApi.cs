@@ -107,6 +107,33 @@ public class IdentityApi : ControllerBase
         return Ok("Secret info for Admin");
     }
 
+    [Authorize(Roles = "ADMIN")]
+    [HttpGet("admin/user-profile")]
+    public async Task<IActionResult> GetUserProfileForAdmin(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return BadRequest(new { message = "User id is required." });
+        }
+
+        var account = await _userManager.FindByIdAsync(id);
+        if (account == null)
+        {
+            return NotFound(new { message = "Користувача не знайдено." });
+        }
+
+        var roles = await _userManager.GetRolesAsync(account);
+
+        return Ok(new
+        {
+            account.Id,
+            account.UserName,
+            account.Email,
+            account.PhoneNumber,
+            Roles = roles
+        });
+    }
+
     private IActionResult MapIdentityError(Exception exception, string fallbackMessage)
     {
         var message = exception.Message;

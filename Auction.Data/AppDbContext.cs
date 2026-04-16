@@ -8,6 +8,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 { 
     public DbSet<AuctionLot> AuctionLots { get; set; }
     public DbSet<AuctionHistory> AuctionHistories { get; set; }
+    public DbSet<AuctionCategory> AuctionCategories { get; set; }
+    public DbSet<CategoryRequest> CategoryRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -37,12 +39,56 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 .HasForeignKey(a => a.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(a => a.Category)
+                .WithMany(c => c.Lots)
+                .HasForeignKey(a => a.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasOne(e => e.WinnerAccount)
                 .WithMany(a => a.WinningLots)
                 .HasForeignKey(e => e.WinnerId)
                 .OnDelete(DeleteBehavior.SetNull);
             
             entity.HasIndex(e => e.StartTime);
+        });
+
+        builder.Entity<AuctionCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(80)
+                .IsRequired();
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+        });
+
+        builder.Entity<CategoryRequest>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(80)
+                .IsRequired();
+
+            entity.HasOne(e => e.RequestedBy)
+                .WithMany(a => a.RequestedCategoryRequests)
+                .HasForeignKey(e => e.RequestedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ReviewedBy)
+                .WithMany(a => a.ReviewedCategoryRequests)
+                .HasForeignKey(e => e.ReviewedById)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Category)
+                .WithMany()
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
         });
         
         builder.Entity<AuctionHistory>(entity =>

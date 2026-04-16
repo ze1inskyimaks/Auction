@@ -17,6 +17,7 @@ public static class AuctionLotMapping
             StartTime = lotInput.StartTime,
             OwnerId = ownerAccount.Id,
             OwnerAccount = ownerAccount,
+            CategoryId = lotInput.CategoryId,
             StartPrice = lotInput.StartPrice,
         };
         return lot;
@@ -32,6 +33,8 @@ public static class AuctionLotMapping
             LinkToImage = lot.LinkToImage,
             StartTime = lot.StartTime,
             OwnerId = lot.OwnerId,
+            CategoryId = lot.CategoryId,
+            CategoryName = lot.Category?.Name,
             CurrentWinnerId = lot.CurrentWinnerId,
             CurrentPrice = lot.CurrentPrice,
             LastBitTime = lot.LastBitTime,

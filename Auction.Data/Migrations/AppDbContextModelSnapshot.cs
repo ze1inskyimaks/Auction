@@ -87,6 +87,35 @@ namespace Auction.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Auction.Data.Model.AuctionCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("AuctionCategories");
+                });
+
             modelBuilder.Entity("Auction.Data.Model.AuctionHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -123,6 +152,9 @@ namespace Auction.Data.Migrations
 
                     b.PrimitiveCollection<string>("AuctionHistoryId")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -176,6 +208,8 @@ namespace Auction.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("StartTime");
@@ -183,6 +217,58 @@ namespace Auction.Data.Migrations
                     b.HasIndex("WinnerId");
 
                     b.ToTable("AuctionLots");
+                });
+
+            modelBuilder.Entity("Auction.Data.Model.CategoryRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdminComment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("RequestedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReviewedById")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("RequestedById");
+
+                    b.HasIndex("ReviewedById");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("CategoryRequests");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -331,6 +417,11 @@ namespace Auction.Data.Migrations
 
             modelBuilder.Entity("Auction.Data.Model.AuctionLot", b =>
                 {
+                    b.HasOne("Auction.Data.Model.AuctionCategory", "Category")
+                        .WithMany("Lots")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Auction.Data.Model.Account", "OwnerAccount")
                         .WithMany("HostedLots")
                         .HasForeignKey("OwnerId")
@@ -342,9 +433,36 @@ namespace Auction.Data.Migrations
                         .HasForeignKey("WinnerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("Category");
+
                     b.Navigation("OwnerAccount");
 
                     b.Navigation("WinnerAccount");
+                });
+
+            modelBuilder.Entity("Auction.Data.Model.CategoryRequest", b =>
+                {
+                    b.HasOne("Auction.Data.Model.AuctionCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Auction.Data.Model.Account", "RequestedBy")
+                        .WithMany("RequestedCategoryRequests")
+                        .HasForeignKey("RequestedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Auction.Data.Model.Account", "ReviewedBy")
+                        .WithMany("ReviewedCategoryRequests")
+                        .HasForeignKey("ReviewedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("RequestedBy");
+
+                    b.Navigation("ReviewedBy");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -402,7 +520,16 @@ namespace Auction.Data.Migrations
                 {
                     b.Navigation("HostedLots");
 
+                    b.Navigation("RequestedCategoryRequests");
+
+                    b.Navigation("ReviewedCategoryRequests");
+
                     b.Navigation("WinningLots");
+                });
+
+            modelBuilder.Entity("Auction.Data.Model.AuctionCategory", b =>
+                {
+                    b.Navigation("Lots");
                 });
 
             modelBuilder.Entity("Auction.Data.Model.AuctionLot", b =>

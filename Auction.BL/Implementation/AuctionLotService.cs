@@ -18,15 +18,24 @@ public class AuctionLotService : IAuctionLotService
     private readonly IAuctionLotRepository _lotRepository;
     private readonly ILogger<AuctionLotService> _logger;
     private readonly IAuctionLobbyService _lobbyService;
+    private readonly IAuctionCategoryRepository _categoryRepository;
     private readonly UserManager<Account> _userManager;
     private readonly AppDbContext _context;
     private readonly CloudinaryService _cloudinaryService;
 
-    public AuctionLotService(IAuctionLotRepository lotRepository, ILogger<AuctionLotService> logger, IAuctionLobbyService lobbyService, UserManager<Account> userManager, AppDbContext context, CloudinaryService cloudinaryService)
+    public AuctionLotService(
+        IAuctionLotRepository lotRepository,
+        ILogger<AuctionLotService> logger,
+        IAuctionLobbyService lobbyService,
+        IAuctionCategoryRepository categoryRepository,
+        UserManager<Account> userManager,
+        AppDbContext context,
+        CloudinaryService cloudinaryService)
     {
         _lotRepository = lotRepository;
         _logger = logger;
         _lobbyService = lobbyService;
+        _categoryRepository = categoryRepository;
         _userManager = userManager;
         _context = context;
         _cloudinaryService = cloudinaryService;
@@ -35,6 +44,15 @@ public class AuctionLotService : IAuctionLotService
     {
         try
         {
+            if (lotDtoInput.CategoryId.HasValue)
+            {
+                var category = await _categoryRepository.GetById(lotDtoInput.CategoryId.Value);
+                if (category is null || !category.IsActive)
+                {
+                    throw new Exception("Selected category does not exist or is inactive.");
+                }
+            }
+
             string? link = null;
             if (file is not null)
             {
@@ -122,6 +140,15 @@ public class AuctionLotService : IAuctionLotService
             
             lotById.Name = lotDtoInput.Name;
             lotById.Description = lotDtoInput.Description;
+            if (lotDtoInput.CategoryId.HasValue)
+            {
+                var category = await _categoryRepository.GetById(lotDtoInput.CategoryId.Value);
+                if (category is null || !category.IsActive)
+                {
+                    throw new Exception("Selected category does not exist or is inactive.");
+                }
+            }
+            lotById.CategoryId = lotDtoInput.CategoryId;
             lotById.StartPrice = lotDtoInput.StartPrice;
             lotById.UpdatedAt = DateTime.UtcNow;
             

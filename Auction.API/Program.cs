@@ -23,6 +23,7 @@ builder
 var app = builder.Build();
 
 await RoleInitializer.EnsureRolesAsync(app.Services);
+await CategoryInitializer.EnsureDefaultCategoriesAsync(app.Services);
 
 app = ServiceExtension.AddApplicationSettings(app);
 

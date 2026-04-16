@@ -12,6 +12,8 @@ public class AuctionLotDtoOutput
     public DateTime StartTime { get; set; }
     
     public string OwnerId { get; set; }
+    public Guid? CategoryId { get; set; }
+    public string? CategoryName { get; set; }
 
     public Guid? CurrentWinnerId { get; set; }
     public double CurrentPrice { get; set; }
