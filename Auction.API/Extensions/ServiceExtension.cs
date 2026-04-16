@@ -11,7 +11,6 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 
@@ -45,7 +44,6 @@ public static class ServiceExtension
         services.AddScoped<IAuctionLobbyService, AuctionLobbyService>();
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<JwtService>();
-        services.AddScoped<CloudinaryService>();
         
         services.AddSingleton<IAuctionTimerService, AuctionTimerService>();
         return services;
@@ -186,22 +184,6 @@ public static class ServiceExtension
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-
-        var uploadsDirectory = Path.Combine(app.Environment.ContentRootPath, "uploads");
-        Directory.CreateDirectory(uploadsDirectory);
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(uploadsDirectory),
-            RequestPath = "/uploads"
-        });
-
-        var legacyUploadsDirectory = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads");
-        Directory.CreateDirectory(legacyUploadsDirectory);
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(legacyUploadsDirectory),
-            RequestPath = "/uploads"
-        });
 
         app.UseRouting();
         app.UseCors("AllowAll");

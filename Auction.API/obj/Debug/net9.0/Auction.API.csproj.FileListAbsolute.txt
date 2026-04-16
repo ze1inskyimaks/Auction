@@ -8,7 +8,6 @@ C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\projec
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Auction.API.pdb
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Azure.Core.dll
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Azure.Identity.dll
-C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\CloudinaryDotNet.dll
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Hangfire.AspNetCore.dll
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Hangfire.Core.dll
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Hangfire.NetCore.dll

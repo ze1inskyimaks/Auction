@@ -14,7 +14,6 @@ builder
     .AddPasswordOptions()
     .AddDependencyInjection()
     .Configure<JwtTokenOptions>(builder.Configuration.GetSection("Jwt"))
-    .Configure<CloudinaryOptions>(builder.Configuration.GetSection("Cloudinary"))
     .AddJwtToken(builder.Configuration)
     .AddCorsInizializer()
     .AddSwagger()

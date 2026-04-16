@@ -152,6 +152,10 @@ public class AuctionApi : ControllerBase
     public async Task<IActionResult> GetAuctionLotById(Guid id)
     {
         var result = await _lotService.GetAuctionLot(id);
+        if (result is null)
+        {
+            return NotFound(new { message = "Auction lot not found." });
+        }
         return Ok(result);
     }
 
@@ -174,12 +178,24 @@ public class AuctionApi : ControllerBase
     public async Task<IActionResult> GetAuctionLotHistory(Guid id)
     {
         var history = await _historyRepository.GetHistoryLogsByLotId(id);
+        var bidderIds = history
+            .Select(h => h.BidderId.ToString())
+            .Distinct()
+            .ToList();
+
+        var bidderNames = await _dbContext.Users
+            .AsNoTracking()
+            .Where(u => bidderIds.Contains(u.Id))
+            .Select(u => new { u.Id, u.UserName })
+            .ToDictionaryAsync(x => x.Id, x => x.UserName);
+
         var response = history.Select(h => new
         {
             h.Id,
             h.LotId,
             h.HistoryNumber,
             h.BidderId,
+            BidderUserName = bidderNames.TryGetValue(h.BidderId.ToString(), out var userName) ? userName : null,
             h.BidAmount,
             h.BidTime
         });
@@ -251,6 +267,20 @@ public class AuctionApi : ControllerBase
 
         var wins = _lotService.GetWonLotsByUserId(user.Id);
         return Ok(wins);
+    }
+
+    [Authorize(Roles = "USER")]
+    [HttpGet("my/history/hosted")]
+    public async Task<IActionResult> GetMyHostedHistory()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        var hosted = _lotService.GetHostedLotsByUserId(user.Id);
+        return Ok(hosted);
     }
 
     private IActionResult MapLotError(string error, string fallbackMessage)

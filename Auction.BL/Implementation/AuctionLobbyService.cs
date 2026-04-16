@@ -6,6 +6,8 @@ using Auction.Data.Interface;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Auction.BL.Implementation;
 
@@ -50,71 +52,81 @@ public class AuctionLobbyService : IAuctionLobbyService
 
     public async Task Bid(Guid lotId, Guid accountId, double amount)
     {
-        var lot = await _lotRepository.GetLot(lotId);
-        if (lot is null)
+        await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
         {
-            throw new Exception($"Error with finding auction lot by id: {lotId}");
+            var lot = await _context.AuctionLots
+                .FirstOrDefaultAsync(l => l.Id == lotId);
+            if (lot is null)
+            {
+                throw new Exception($"Error with finding auction lot by id: {lotId}");
+            }
+
+            if (lot.Status != Status.Open)
+            {
+                throw new Exception($"Error with status in auction lot by id: {lotId}, his status: {lot.Status}");
+            }
+
+            if (double.IsNaN(amount) || double.IsInfinity(amount) || amount <= 0)
+            {
+                throw new Exception("Некоректна сума ставки.");
+            }
+
+            var startPrice = Math.Round((decimal)lot.StartPrice, 2, MidpointRounding.AwayFromZero);
+            var currentPrice = Math.Round((decimal)lot.CurrentPrice, 2, MidpointRounding.AwayFromZero);
+            var bidAmount = Math.Round((decimal)amount, 2, MidpointRounding.AwayFromZero);
+
+            var currentBase = Math.Max(startPrice, currentPrice);
+            var dynamicStep = Math.Round(currentBase * BidStepPercent, 2, MidpointRounding.AwayFromZero);
+            var requiredStep = Math.Max(MinBidStep, dynamicStep);
+            var minimumAllowedBid = Math.Round(currentBase + requiredStep, 2, MidpointRounding.AwayFromZero);
+
+            if (bidAmount < minimumAllowedBid)
+            {
+                throw new Exception(
+                    $"Ставка має бути не меншою за {minimumAllowedBid:F2} грн. Мінімальний крок: {requiredStep:F2} грн.");
+            }
+
+            if (lot.OwnerId == accountId.ToString() || lot.CurrentWinnerId == accountId)
+            {
+                throw new Exception(
+                    $"Error with account id: {accountId}, because owner of lot {lot.OwnerId} " +
+                    $"or current winner id {lot.CurrentWinnerId} the same!");
+            }
+
+            var latestHistoryNumber = await _context.AuctionHistories
+                .Where(h => h.LotId == lotId)
+                .MaxAsync(h => (int?)h.HistoryNumber) ?? 0;
+
+            var newHistoryNumber = latestHistoryNumber + 1;
+            var historyLog = new AuctionHistory()
+            {
+                LotId = lot.Id,
+                AuctionLot = lot,
+                HistoryNumber = newHistoryNumber,
+                BidderId = accountId,
+                BidAmount = (double)bidAmount
+            };
+            await _historyRepository.CreateHistoryLog(historyLog);
+
+            lot.CurrentWinnerId = accountId;
+            lot.CurrentPrice = (double)bidAmount;
+            lot.LastBitTime = DateTime.UtcNow;
+            await _lotRepository.ChangeLot(lot);
+
+            await transaction.CommitAsync();
         }
-
-        if (lot.Status != Status.Open)
+        catch
         {
-            throw new Exception($"Error with status in auction lot by id: {lotId}, his status: {lot.Status}");
+            try
+            {
+                await transaction.RollbackAsync();
+            }
+            catch
+            {
+            }
+            throw;
         }
-
-        if (double.IsNaN(amount) || double.IsInfinity(amount) || amount <= 0)
-        {
-            throw new Exception("Некоректна сума ставки.");
-        }
-
-        var startPrice = Math.Round((decimal)lot.StartPrice, 2, MidpointRounding.AwayFromZero);
-        var currentPrice = Math.Round((decimal)lot.CurrentPrice, 2, MidpointRounding.AwayFromZero);
-        var bidAmount = Math.Round((decimal)amount, 2, MidpointRounding.AwayFromZero);
-
-        var currentBase = Math.Max(startPrice, currentPrice);
-        var dynamicStep = Math.Round(currentBase * BidStepPercent, 2, MidpointRounding.AwayFromZero);
-        var requiredStep = Math.Max(MinBidStep, dynamicStep);
-        var minimumAllowedBid = Math.Round(currentBase + requiredStep, 2, MidpointRounding.AwayFromZero);
-
-        if (bidAmount < minimumAllowedBid)
-        {
-            throw new Exception(
-                $"Ставка має бути не меншою за {minimumAllowedBid:F2} грн. Мінімальний крок: {requiredStep:F2} грн.");
-        }
-
-        if (lot.OwnerId == accountId.ToString() || lot.CurrentWinnerId == accountId)
-        {
-            throw new Exception(
-                $"Error with account id: {accountId}, because owner of lot {lot.OwnerId} " +
-                $"or current winner id {lot.CurrentWinnerId} the same!");
-            
-        }
-
-        var latestHistoryNumber = await _historyRepository.GetLastHistoryNumberByLotId(lotId);
-
-        if (latestHistoryNumber is null)
-        {
-            /*throw new Exception("Error with history number, his is null.");*/
-            latestHistoryNumber = 0;
-        }
-
-        var newHistoryNumber = latestHistoryNumber + 1;
-        var historyLog = new AuctionHistory()
-        {
-            LotId = lot.Id,
-            AuctionLot = lot,
-            HistoryNumber = newHistoryNumber,
-            BidderId = accountId,
-            BidAmount = amount
-        };
-        var log = await _historyRepository.CreateHistoryLog(historyLog);
-
-        lot.CurrentWinnerId = accountId;
-        lot.CurrentPrice = amount;
-        lot.LastBitTime = DateTime.UtcNow;
-        //lot.AuctionHistoryId!.Add(log.Id);
-        //lot.AuctionHistories!.Add(log);
-        
-        await _lotRepository.ChangeLot(lot);
     }
 
     public async Task FinishAuction(Guid lotId, Guid accountId, double amount)

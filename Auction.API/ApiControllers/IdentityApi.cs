@@ -1,10 +1,12 @@
 ﻿using System.Security.Claims;
 using Auction.BL.Interface;
 using Auction.BL.Model.Account.DTO;
+using Auction.API.Options;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace IdentityService.API;
 
@@ -14,11 +16,16 @@ public class IdentityApi : ControllerBase
 {
     private readonly IAccountService _accountService;
     private readonly UserManager<Account> _userManager;
+    private readonly JwtTokenOptions _jwtOptions;
 
-    public IdentityApi(IAccountService accountService, UserManager<Account> userManager)
+    public IdentityApi(
+        IAccountService accountService,
+        UserManager<Account> userManager,
+        IOptions<JwtTokenOptions> jwtOptions)
     {
         _accountService = accountService;
         _userManager = userManager;
+        _jwtOptions = jwtOptions.Value;
     }
     
     [HttpPost("login")]
@@ -39,7 +46,7 @@ public class IdentityApi : ControllerBase
                 Secure = true, // Включити у HTTPS
                 Expires = DateTime.UtcNow.AddHours(12)
             };
-            Response.Cookies.Append("boby", token, cookieOptions);
+            Response.Cookies.Append(_jwtOptions.JwtSecretWord, token, cookieOptions);
         
             return Ok(new { token, message = "Logged in successfully" });
         }
@@ -131,6 +138,27 @@ public class IdentityApi : ControllerBase
             account.Email,
             account.PhoneNumber,
             Roles = roles
+        });
+    }
+
+    [HttpGet("public/user-profile")]
+    public async Task<IActionResult> GetPublicUserProfile(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return BadRequest(new { message = "User id is required." });
+        }
+
+        var account = await _userManager.FindByIdAsync(id);
+        if (account == null)
+        {
+            return NotFound(new { message = "Користувача не знайдено." });
+        }
+
+        return Ok(new
+        {
+            account.Id,
+            account.UserName
         });
     }
 

@@ -12,4 +12,5 @@ public interface IAuctionLotRepository
     public List<AuctionLot>? GetActiveLot();
     public List<AuctionLot>? GetArchivedLot();
     public List<AuctionLot>? GetWonLotsByWinnerId(string winnerId);
+    public List<AuctionLot>? GetHostedLotsByOwnerId(string ownerId);
 }

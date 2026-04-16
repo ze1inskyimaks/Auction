@@ -16,4 +16,5 @@ public interface IAuctionLotService
     public List<AuctionLotDtoOutput>? GetListOfActiveAuctionLots();
     public List<AuctionLotDtoOutput>? GetListOfArchivedAuctionLots();
     public List<AuctionLotDtoOutput>? GetWonLotsByUserId(string userId);
+    public List<AuctionLotDtoOutput>? GetHostedLotsByUserId(string userId);
 }

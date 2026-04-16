@@ -9,6 +9,7 @@ using Auction.Data.Model;
 using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Buffers;
 
@@ -48,6 +49,7 @@ public class AuctionLotService : IAuctionLotService
     }
     public async Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lotDtoInput, Account account, IFormFile? file = null)
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             if (lotDtoInput.CategoryId.HasValue)
@@ -77,12 +79,22 @@ public class AuctionLotService : IAuctionLotService
             await _lotRepository.ChangeLot(lot);
 
             await _userManager.AddHostedLotToAccount(_context, account.Id, lot);
+
+            await transaction.CommitAsync();
             
             _logger.LogInformation("Successful creating auction lot with account: {UserId}", account);
             return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
         }
         catch (Exception e)
         {
+            try
+            {
+                await transaction.RollbackAsync();
+            }
+            catch
+            {
+                // ignore rollback failures, original exception is more important for API response
+            }
             _logger.LogError(e, "Error with creating auction lot with account: {UserID}", account);
             return Result<AuctionLotDtoOutput>.Failure(e.Message);
         }
@@ -274,6 +286,13 @@ public class AuctionLotService : IAuctionLotService
     public List<AuctionLotDtoOutput> GetWonLotsByUserId(string userId)
     {
         return _lotRepository.GetWonLotsByWinnerId(userId)!
+            .Select(AuctionLotMapping.ToDto)
+            .ToList();
+    }
+
+    public List<AuctionLotDtoOutput> GetHostedLotsByUserId(string userId)
+    {
+        return _lotRepository.GetHostedLotsByOwnerId(userId)!
             .Select(AuctionLotMapping.ToDto)
             .ToList();
     }

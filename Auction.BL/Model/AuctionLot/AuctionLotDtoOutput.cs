@@ -12,6 +12,7 @@ public class AuctionLotDtoOutput
     public DateTime StartTime { get; set; }
     
     public string OwnerId { get; set; }
+    public string? OwnerUserName { get; set; }
     public Guid? CategoryId { get; set; }
     public string? CategoryName { get; set; }
 
@@ -24,6 +25,7 @@ public class AuctionLotDtoOutput
     public double StartPrice { get; set; } = 0;
     public double EndPrice { get; set; } = 0;
     public string? WinnerId { get; set; }
+    public string? WinnerUserName { get; set; }
 
     public Status Status { get; set; }
     public DateTime UpdatedAt { get; set; }
