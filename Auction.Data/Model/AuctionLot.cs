@@ -13,6 +13,7 @@ public class AuctionLot
     [StringLength(500)]
     public string? Description { get; set; }
     public string? LinkToImage { get; set; }
+    public AuctionLotImage? Image { get; set; }
     public DateTime StartTime { get; set; } = DateTime.UtcNow.AddHours(1);
     public string JobId { get; set; } = string.Empty;
     

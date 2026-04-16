@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 { 
     public DbSet<AuctionLot> AuctionLots { get; set; }
     public DbSet<AuctionHistory> AuctionHistories { get; set; }
+    public DbSet<AuctionLotImage> AuctionLotImages { get; set; }
     public DbSet<AuctionCategory> AuctionCategories { get; set; }
     public DbSet<CategoryRequest> CategoryRequests { get; set; }
 
@@ -48,8 +49,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
                 .WithMany(a => a.WinningLots)
                 .HasForeignKey(e => e.WinnerId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Image)
+                .WithOne(i => i.Lot)
+                .HasForeignKey<AuctionLotImage>(i => i.LotId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             entity.HasIndex(e => e.StartTime);
+        });
+
+        builder.Entity<AuctionLotImage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ContentType)
+                .HasMaxLength(128)
+                .IsRequired();
+            entity.Property(e => e.FileName)
+                .HasMaxLength(260)
+                .IsRequired();
+            entity.Property(e => e.Data)
+                .IsRequired();
+            entity.HasIndex(e => e.LotId)
+                .IsUnique();
         });
 
         builder.Entity<AuctionCategory>(entity =>

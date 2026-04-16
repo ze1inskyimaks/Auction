@@ -1,12 +1,14 @@
 ﻿using Auction.BL.Interface;
 using Auction.BL.Model.AuctionLot;
 using Auction.BL.Services;
+using Auction.Data;
 using Auction.Data.Interface;
 using Auction.Data.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Auction.API.ApiControllers;
 
@@ -19,6 +21,7 @@ public class AuctionApi : ControllerBase
     private readonly IAuctionHistoryRepository _historyRepository;
     private readonly IHubContext<AuctionHub> _hubContext;
     private readonly ICacheService _cacheService;
+    private readonly AppDbContext _dbContext;
     private const string Lobby = "lobby";
 
     public AuctionApi(
@@ -26,13 +29,15 @@ public class AuctionApi : ControllerBase
         IAuctionLotService lotService,
         IAuctionHistoryRepository historyRepository,
         IHubContext<AuctionHub> hubContext,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        AppDbContext dbContext)
     {
         _userManager = userManager;
         _lotService = lotService;
         _historyRepository = historyRepository;
         _hubContext = hubContext;
         _cacheService = cacheService;
+        _dbContext = dbContext;
     }
     
     [Authorize(Roles = "USER")]
@@ -150,6 +155,21 @@ public class AuctionApi : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id}/image")]
+    public async Task<IActionResult> GetAuctionLotImage(Guid id)
+    {
+        var image = await _dbContext.AuctionLotImages
+            .AsNoTracking()
+            .FirstOrDefaultAsync(i => i.LotId == id);
+
+        if (image is null || image.Data.Length == 0)
+        {
+            return NotFound(new { message = "Image not found." });
+        }
+
+        return File(image.Data, image.ContentType, enableRangeProcessing: true);
+    }
+
     [HttpGet("{id}/history")]
     public async Task<IActionResult> GetAuctionLotHistory(Guid id)
     {
@@ -247,6 +267,9 @@ public class AuctionApi : ControllerBase
             error.Contains("cannot mark this auction lot as delivered", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("cannot cancel delivery for this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("selected category does not exist or is inactive", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("image file", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("image format", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("invalid image", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("can't update this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("can't delete this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("Error with finding auction lot by Id", StringComparison.OrdinalIgnoreCase))

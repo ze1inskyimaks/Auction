@@ -219,6 +219,43 @@ namespace Auction.Data.Migrations
                     b.ToTable("AuctionLots");
                 });
 
+            modelBuilder.Entity("Auction.Data.Model.AuctionLotImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotId")
+                        .IsUnique();
+
+                    b.ToTable("AuctionLotImages");
+                });
+
             modelBuilder.Entity("Auction.Data.Model.CategoryRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -440,6 +477,17 @@ namespace Auction.Data.Migrations
                     b.Navigation("WinnerAccount");
                 });
 
+            modelBuilder.Entity("Auction.Data.Model.AuctionLotImage", b =>
+                {
+                    b.HasOne("Auction.Data.Model.AuctionLot", "Lot")
+                        .WithOne("Image")
+                        .HasForeignKey("Auction.Data.Model.AuctionLotImage", "LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lot");
+                });
+
             modelBuilder.Entity("Auction.Data.Model.CategoryRequest", b =>
                 {
                     b.HasOne("Auction.Data.Model.AuctionCategory", "Category")
@@ -535,6 +583,8 @@ namespace Auction.Data.Migrations
             modelBuilder.Entity("Auction.Data.Model.AuctionLot", b =>
                 {
                     b.Navigation("AuctionHistories");
+
+                    b.Navigation("Image");
                 });
 #pragma warning restore 612, 618
         }

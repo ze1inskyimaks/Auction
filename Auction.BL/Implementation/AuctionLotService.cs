@@ -10,6 +10,7 @@ using Hangfire;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using System.Buffers;
 
 namespace Auction.BL.Implementation;
 
@@ -21,7 +22,14 @@ public class AuctionLotService : IAuctionLotService
     private readonly IAuctionCategoryRepository _categoryRepository;
     private readonly UserManager<Account> _userManager;
     private readonly AppDbContext _context;
-    private readonly CloudinaryService _cloudinaryService;
+    private const long MaxImageSizeBytes = 5 * 1024 * 1024;
+    private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif"
+    };
 
     public AuctionLotService(
         IAuctionLotRepository lotRepository,
@@ -29,8 +37,7 @@ public class AuctionLotService : IAuctionLotService
         IAuctionLobbyService lobbyService,
         IAuctionCategoryRepository categoryRepository,
         UserManager<Account> userManager,
-        AppDbContext context,
-        CloudinaryService cloudinaryService)
+        AppDbContext context)
     {
         _lotRepository = lotRepository;
         _logger = logger;
@@ -38,7 +45,6 @@ public class AuctionLotService : IAuctionLotService
         _categoryRepository = categoryRepository;
         _userManager = userManager;
         _context = context;
-        _cloudinaryService = cloudinaryService;
     }
     public async Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lotDtoInput, Account account, IFormFile? file = null)
     {
@@ -54,30 +60,13 @@ public class AuctionLotService : IAuctionLotService
             }
 
             string? link = null;
-            if (file is not null)
-            {
-                try
-                {
-                    link = await _cloudinaryService.UploadImageAsync(file);
-                    if (link is null)
-                    {
-                        _logger.LogWarning(
-                            "Image upload skipped or failed for lot creation. FileName: {FileName}, Account: {UserId}",
-                            file.FileName,
-                            account.Id);
-                    }
-                }
-                catch (Exception uploadException)
-                {
-                    _logger.LogWarning(
-                        uploadException,
-                        "Image upload failed, continuing lot creation without image. FileName: {FileName}, Account: {UserId}",
-                        file.FileName,
-                        account.Id);
-                }
-            }
             
             var lot = await _lotRepository.CreateLot(AuctionLotMapping.ToAuctionLot(lotDtoInput, account, link));
+
+            if (file is not null)
+            {
+                await SaveLotImageToDatabaseAsync(lot, file);
+            }
             
             var jobId = BackgroundJob.Schedule(
                 () => _lobbyService.StartAuction(lot.Id), 
@@ -287,5 +276,112 @@ public class AuctionLotService : IAuctionLotService
         return _lotRepository.GetWonLotsByWinnerId(userId)!
             .Select(AuctionLotMapping.ToDto)
             .ToList();
+    }
+
+    private async Task SaveLotImageToDatabaseAsync(AuctionLot lot, IFormFile file)
+    {
+        if (file.Length <= 0)
+        {
+            throw new Exception("Image file is empty.");
+        }
+
+        if (file.Length > MaxImageSizeBytes)
+        {
+            throw new Exception("Image file is too large. Maximum allowed size is 5 MB.");
+        }
+
+        if (string.IsNullOrWhiteSpace(file.ContentType) || !AllowedContentTypes.Contains(file.ContentType))
+        {
+            throw new Exception("Unsupported image format. Allowed: JPEG, PNG, WEBP, GIF.");
+        }
+
+        await using var stream = file.OpenReadStream();
+        var bytes = await ReadFullyAsync(stream, file.Length);
+        if (!IsValidImageSignature(bytes, file.ContentType))
+        {
+            throw new Exception("Invalid image file content.");
+        }
+
+        var fileName = Path.GetFileName(file.FileName);
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = $"{Guid.NewGuid():N}.bin";
+        }
+
+        var image = new AuctionLotImage
+        {
+            LotId = lot.Id,
+            ContentType = file.ContentType,
+            FileName = fileName,
+            SizeBytes = bytes.Length,
+            Data = bytes
+        };
+
+        await _context.AuctionLotImages.AddAsync(image);
+        lot.LinkToImage = $"/api/v1/auction/{lot.Id}/image";
+        await _lotRepository.ChangeLot(lot);
+    }
+
+    private static async Task<byte[]> ReadFullyAsync(Stream stream, long expectedLength)
+    {
+        if (expectedLength <= 0 || expectedLength > int.MaxValue)
+        {
+            using var dynamicMs = new MemoryStream();
+            await stream.CopyToAsync(dynamicMs);
+            return dynamicMs.ToArray();
+        }
+
+        var length = (int)expectedLength;
+        var rented = ArrayPool<byte>.Shared.Rent(length);
+        try
+        {
+            var totalRead = 0;
+            while (totalRead < length)
+            {
+                var read = await stream.ReadAsync(rented.AsMemory(totalRead, length - totalRead));
+                if (read == 0)
+                {
+                    break;
+                }
+                totalRead += read;
+            }
+
+            return rented[..totalRead].ToArray();
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rented);
+        }
+    }
+
+    private static bool IsValidImageSignature(byte[] bytes, string contentType)
+    {
+        if (bytes.Length < 12)
+        {
+            return false;
+        }
+
+        if (contentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[^2] == 0xFF && bytes[^1] == 0xD9;
+        }
+
+        if (contentType.Equals("image/png", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
+        }
+
+        if (contentType.Equals("image/gif", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x38;
+        }
+
+        if (contentType.Equals("image/webp", StringComparison.OrdinalIgnoreCase))
+        {
+            return bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
+                   bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50;
+        }
+
+        return false;
     }
 }

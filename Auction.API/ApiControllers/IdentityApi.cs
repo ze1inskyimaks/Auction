@@ -134,6 +134,88 @@ public class IdentityApi : ControllerBase
         });
     }
 
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetCurrentProfile()
+    {
+        var account = await _userManager.GetUserAsync(User);
+        if (account == null)
+        {
+            return Unauthorized();
+        }
+
+        var roles = await _userManager.GetRolesAsync(account);
+        return Ok(new
+        {
+            account.Id,
+            account.UserName,
+            account.Email,
+            account.PhoneNumber,
+            Roles = roles
+        });
+    }
+
+    [Authorize]
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateCurrentProfile([FromBody] UpdateProfileDto dto)
+    {
+        var account = await _userManager.GetUserAsync(User);
+        if (account == null)
+        {
+            return Unauthorized();
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.UserName))
+        {
+            return BadRequest(new { message = "Ім'я користувача є обов'язковим." });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Email))
+        {
+            return BadRequest(new { message = "Email є обов'язковим." });
+        }
+
+        var normalizedUserName = dto.UserName.Trim();
+        var normalizedEmail = dto.Email.Trim();
+        var normalizedPhone = string.IsNullOrWhiteSpace(dto.PhoneNumber) ? null : dto.PhoneNumber.Trim();
+
+        var existingByName = await _userManager.FindByNameAsync(normalizedUserName);
+        if (existingByName != null && existingByName.Id != account.Id)
+        {
+            return BadRequest(new { message = "Користувач із таким ім'ям уже існує." });
+        }
+
+        var existingByEmail = await _userManager.FindByEmailAsync(normalizedEmail);
+        if (existingByEmail != null && existingByEmail.Id != account.Id)
+        {
+            return BadRequest(new { message = "Користувач із таким email уже існує." });
+        }
+
+        account.UserName = normalizedUserName;
+        account.Email = normalizedEmail;
+        account.PhoneNumber = normalizedPhone;
+
+        var updateResult = await _userManager.UpdateAsync(account);
+        if (!updateResult.Succeeded)
+        {
+            return BadRequest(new
+            {
+                message = "Не вдалося оновити профіль: " +
+                          string.Join(", ", updateResult.Errors.Select(e => e.Description))
+            });
+        }
+
+        var roles = await _userManager.GetRolesAsync(account);
+        return Ok(new
+        {
+            account.Id,
+            account.UserName,
+            account.Email,
+            account.PhoneNumber,
+            Roles = roles
+        });
+    }
+
     private IActionResult MapIdentityError(Exception exception, string fallbackMessage)
     {
         var message = exception.Message;
@@ -156,4 +238,11 @@ public class IdentityApi : ControllerBase
             detail: $"{fallbackMessage} {message}",
             statusCode: StatusCodes.Status500InternalServerError);
     }
+}
+
+public class UpdateProfileDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
 }
