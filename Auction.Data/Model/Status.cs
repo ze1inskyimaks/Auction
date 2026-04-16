@@ -5,5 +5,6 @@ public enum Status
     Active,
     Open,
     Sold,
-    Cancelled
+    Cancelled,
+    Delivered
 }

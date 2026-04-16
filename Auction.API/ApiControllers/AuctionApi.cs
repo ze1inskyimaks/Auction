@@ -117,6 +117,32 @@ public class AuctionApi : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut("{id}/deliver")]
+    public async Task<IActionResult> MarkAuctionLotAsDelivered(Guid id)
+    {
+        var result = await _lotService.MarkAuctionLotAsDelivered(id);
+        if (result.IsFailure)
+        {
+            return MapLotError(result.Error, "Error with marking lot as delivered");
+        }
+
+        return Ok(result.Value);
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut("{id}/undeliver")]
+    public async Task<IActionResult> CancelAuctionLotDelivery(Guid id)
+    {
+        var result = await _lotService.CancelAuctionLotDelivery(id);
+        if (result.IsFailure)
+        {
+            return MapLotError(result.Error, "Error with cancelling lot delivery");
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAuctionLotById(Guid id)
     {
@@ -218,6 +244,8 @@ public class AuctionApi : ControllerBase
         if (error.Contains("can`t change this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("cannot update this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("cannot delete this auction lot", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("cannot mark this auction lot as delivered", StringComparison.OrdinalIgnoreCase) ||
+            error.Contains("cannot cancel delivery for this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("can't update this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("can't delete this auction lot", StringComparison.OrdinalIgnoreCase) ||
             error.Contains("Error with finding auction lot by Id", StringComparison.OrdinalIgnoreCase))

@@ -48,10 +48,20 @@ public class AuctionHub : Hub
     public async Task PlaceBid(Guid lotId, double amount)
     {
         var accountId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var roles = Context.User?
+            .FindAll(ClaimTypes.Role)
+            .Select(x => x.Value.ToUpperInvariant())
+            .ToHashSet() ?? new HashSet<string>();
 
         if (string.IsNullOrEmpty(accountId) || !Guid.TryParse(accountId, out var userId))
         {
             await Clients.Caller.SendAsync("Error", "Invalid account ID.");
+            return;
+        }
+
+        if (!roles.Contains("USER"))
+        {
+            await Clients.Caller.SendAsync("Error", "Only users with USER role can place bids.");
             return;
         }
 

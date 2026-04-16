@@ -38,10 +38,24 @@ public class AuctionLotService : IAuctionLotService
             string? link = null;
             if (file is not null)
             {
-                link = await _cloudinaryService.UploadImageAsync(file);
-                if (link is null)
+                try
                 {
-                    throw new Exception("Error with uploading file");
+                    link = await _cloudinaryService.UploadImageAsync(file);
+                    if (link is null)
+                    {
+                        _logger.LogWarning(
+                            "Image upload skipped or failed for lot creation. FileName: {FileName}, Account: {UserId}",
+                            file.FileName,
+                            account.Id);
+                    }
+                }
+                catch (Exception uploadException)
+                {
+                    _logger.LogWarning(
+                        uploadException,
+                        "Image upload failed, continuing lot creation without image. FileName: {FileName}, Account: {UserId}",
+                        file.FileName,
+                        account.Id);
                 }
             }
             
@@ -63,7 +77,7 @@ public class AuctionLotService : IAuctionLotService
         catch (Exception e)
         {
             _logger.LogError(e, "Error with creating auction lot with account: {UserID}", account);
-            return Result<AuctionLotDtoOutput>.Failure(e.ToString());
+            return Result<AuctionLotDtoOutput>.Failure(e.Message);
         }
     }
 
@@ -119,7 +133,7 @@ public class AuctionLotService : IAuctionLotService
         catch (Exception e)
         {
             _logger.LogError(e, "Error with changing auction lot with account: {UserID}", account);
-            return Result<AuctionLotDtoOutput>.Failure(e.ToString());
+            return Result<AuctionLotDtoOutput>.Failure(e.Message);
         }
     }
 
@@ -159,8 +173,62 @@ public class AuctionLotService : IAuctionLotService
         catch (Exception e)
         {
             _logger.LogError(e, "Error with deleting auction lot with account: {UserID}", account);
-            return Result<AuctionLotDtoOutput>.Failure(e.ToString());
+            return Result<AuctionLotDtoOutput>.Failure(e.Message);
         }    
+    }
+
+    public async Task<Result<AuctionLotDtoOutput>> MarkAuctionLotAsDelivered(Guid id)
+    {
+        try
+        {
+            var lotById = await _lotRepository.GetLot(id);
+            if (lotById is null)
+            {
+                throw new Exception($"Error with finding auction lot by Id: {id}");
+            }
+
+            if (lotById.Status != Status.Sold)
+            {
+                throw new Exception($"You cannot mark this auction lot as delivered because its status is {lotById.Status}. Id: {id}");
+            }
+
+            lotById.Status = Status.Delivered;
+            lotById.UpdatedAt = DateTime.UtcNow;
+            var lot = await _lotRepository.ChangeLot(lotById);
+            return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error with marking auction lot as delivered. Lot ID: {LotID}", id);
+            return Result<AuctionLotDtoOutput>.Failure(e.Message);
+        }
+    }
+
+    public async Task<Result<AuctionLotDtoOutput>> CancelAuctionLotDelivery(Guid id)
+    {
+        try
+        {
+            var lotById = await _lotRepository.GetLot(id);
+            if (lotById is null)
+            {
+                throw new Exception($"Error with finding auction lot by Id: {id}");
+            }
+
+            if (lotById.Status != Status.Delivered)
+            {
+                throw new Exception($"You cannot cancel delivery for this auction lot because its status is {lotById.Status}. Id: {id}");
+            }
+
+            lotById.Status = Status.Sold;
+            lotById.UpdatedAt = DateTime.UtcNow;
+            var lot = await _lotRepository.ChangeLot(lotById);
+            return Result<AuctionLotDtoOutput>.Success(AuctionLotMapping.ToDto(lot));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error with cancelling delivered state for auction lot. Lot ID: {LotID}", id);
+            return Result<AuctionLotDtoOutput>.Failure(e.Message);
+        }
     }
 
     public async Task<AuctionLotDtoOutput?> GetAuctionLot(Guid id)

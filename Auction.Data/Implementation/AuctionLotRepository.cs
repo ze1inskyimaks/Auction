@@ -49,7 +49,7 @@ public class AuctionLotRepository : IAuctionLotRepository
     public List<AuctionLot> GetArchivedLot()
     {
         var list = _context.AuctionLots
-            .Where(e => e.Status == Status.Sold || e.Status == Status.Cancelled)
+            .Where(e => e.Status == Status.Sold || e.Status == Status.Cancelled || e.Status == Status.Delivered)
             .OrderByDescending(e => e.UpdatedAt)
             .ThenByDescending(e => e.CreatedAt)
             .ToList();
@@ -59,7 +59,7 @@ public class AuctionLotRepository : IAuctionLotRepository
     public List<AuctionLot> GetWonLotsByWinnerId(string winnerId)
     {
         var list = _context.AuctionLots
-            .Where(e => e.Status == Status.Sold && e.WinnerId == winnerId)
+            .Where(e => (e.Status == Status.Sold || e.Status == Status.Delivered) && e.WinnerId == winnerId)
             .OrderByDescending(e => e.UpdatedAt)
             .ThenByDescending(e => e.CreatedAt)
             .ToList();

@@ -199,3 +199,4 @@ C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\projec
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\obj\Debug\net9.0\Auction.API.pdb
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\obj\Debug\net9.0\Auction.API.genruntimeconfig.cache
 C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\obj\Debug\net9.0\ref\Auction.API.dll
+C:\Users\autoh\OneDrive\Робочий стіл\new NULP\3course 2semestr\project-manage\projects\Auction\Auction.API\bin\Debug\net9.0\Auction.API.staticwebassets.runtime.json
