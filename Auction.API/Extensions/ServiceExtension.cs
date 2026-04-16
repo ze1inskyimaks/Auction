@@ -77,11 +77,15 @@ public static class ServiceExtension
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.WithOrigins("http://localhost:3000")  // Вказуємо конкретний домен фронтенду
-                    .AllowCredentials()  // Дозволяємо куки
-                    .AllowAnyHeader()    // Дозволяємо будь-які заголовки
-                    .AllowAnyMethod()    // Дозволяємо будь-які методи
-                    .AllowCredentials();
+                policy.WithOrigins(
+                        "http://localhost:3000",
+                        "https://localhost:3000",
+                        "http://localhost:5173",
+                        "https://localhost:5173"
+                    )
+                    .AllowCredentials()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
             });
         });
         service.ConfigureApplicationCookie(options =>

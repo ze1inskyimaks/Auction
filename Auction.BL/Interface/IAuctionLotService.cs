@@ -12,4 +12,6 @@ public interface IAuctionLotService
     public Task<Result<AuctionLotDtoOutput>> DeleteAuctionLot(Guid id, Account account);
     public Task<AuctionLotDtoOutput?> GetAuctionLot(Guid id);
     public List<AuctionLotDtoOutput>? GetListOfActiveAuctionLots();
+    public List<AuctionLotDtoOutput>? GetListOfArchivedAuctionLots();
+    public List<AuctionLotDtoOutput>? GetWonLotsByUserId(string userId);
 }

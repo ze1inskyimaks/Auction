@@ -11,6 +11,8 @@ namespace Auction.BL.Implementation;
 
 public class AuctionLobbyService : IAuctionLobbyService
 {
+    private const decimal MinBidStep = 1m;
+    private const decimal BidStepPercent = 0.01m;
     private readonly IAuctionLotRepository _lotRepository;
     private readonly IAuctionHistoryRepository _historyRepository;
     private readonly UserManager<Account> _userManager;
@@ -59,11 +61,24 @@ public class AuctionLobbyService : IAuctionLobbyService
             throw new Exception($"Error with status in auction lot by id: {lotId}, his status: {lot.Status}");
         }
 
-        if (lot.StartPrice > amount || lot.CurrentPrice > amount)
+        if (double.IsNaN(amount) || double.IsInfinity(amount) || amount <= 0)
+        {
+            throw new Exception("Некоректна сума ставки.");
+        }
+
+        var startPrice = Math.Round((decimal)lot.StartPrice, 2, MidpointRounding.AwayFromZero);
+        var currentPrice = Math.Round((decimal)lot.CurrentPrice, 2, MidpointRounding.AwayFromZero);
+        var bidAmount = Math.Round((decimal)amount, 2, MidpointRounding.AwayFromZero);
+
+        var currentBase = Math.Max(startPrice, currentPrice);
+        var dynamicStep = Math.Round(currentBase * BidStepPercent, 2, MidpointRounding.AwayFromZero);
+        var requiredStep = Math.Max(MinBidStep, dynamicStep);
+        var minimumAllowedBid = Math.Round(currentBase + requiredStep, 2, MidpointRounding.AwayFromZero);
+
+        if (bidAmount < minimumAllowedBid)
         {
             throw new Exception(
-                $"Error with amount of price, because you send: {amount}, " +
-                $"but starter price {lot.StartPrice} or current price {lot.CurrentPrice} bigger!");
+                $"Ставка має бути не меншою за {minimumAllowedBid:F2} грн. Мінімальний крок: {requiredStep:F2} грн.");
         }
 
         if (lot.OwnerId == accountId.ToString() || lot.CurrentWinnerId == accountId)

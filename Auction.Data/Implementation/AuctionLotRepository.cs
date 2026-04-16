@@ -45,4 +45,24 @@ public class AuctionLotRepository : IAuctionLotRepository
             .ToList();
         return list;
     }
+
+    public List<AuctionLot> GetArchivedLot()
+    {
+        var list = _context.AuctionLots
+            .Where(e => e.Status == Status.Sold || e.Status == Status.Cancelled)
+            .OrderByDescending(e => e.UpdatedAt)
+            .ThenByDescending(e => e.CreatedAt)
+            .ToList();
+        return list;
+    }
+
+    public List<AuctionLot> GetWonLotsByWinnerId(string winnerId)
+    {
+        var list = _context.AuctionLots
+            .Where(e => e.Status == Status.Sold && e.WinnerId == winnerId)
+            .OrderByDescending(e => e.UpdatedAt)
+            .ThenByDescending(e => e.CreatedAt)
+            .ToList();
+        return list;
+    }
 }

@@ -24,29 +24,43 @@ public class IdentityApi : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody]AccountLoginDTO accountDto)
     {
-        var token = await _accountService.Login(accountDto);
-
-        if (token == null)
+        try
         {
-            return Unauthorized();
-        }
+            var token = await _accountService.Login(accountDto);
 
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true, // Забороняє доступ через JavaScript
-            Secure = true, // Включити у HTTPS
-            Expires = DateTime.UtcNow.AddHours(12)
-        };
-        Response.Cookies.Append("boby", token, cookieOptions);
+            if (token == null)
+            {
+                return Unauthorized(new { message = "Невірний email або пароль." });
+            }
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true, // Забороняє доступ через JavaScript
+                Secure = true, // Включити у HTTPS
+                Expires = DateTime.UtcNow.AddHours(12)
+            };
+            Response.Cookies.Append("boby", token, cookieOptions);
         
-        return Ok(new { token, message = "Logged in successfully" });
+            return Ok(new { token, message = "Logged in successfully" });
+        }
+        catch (Exception e)
+        {
+            return MapIdentityError(e, "Помилка авторизації.");
+        }
     }
     
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody]AccountRegistrationDTO accountDto, uint role = default)
     {
-        await _accountService.Register(accountDto, role);
-        return Ok();
+        try
+        {
+            await _accountService.Register(accountDto, role);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return MapIdentityError(e, "Помилка реєстрації.");
+        }
     }
 
     [Authorize(Roles = "ADMIN")]
@@ -91,5 +105,28 @@ public class IdentityApi : ControllerBase
         }
 
         return Ok("Secret info for Admin");
+    }
+
+    private IActionResult MapIdentityError(Exception exception, string fallbackMessage)
+    {
+        var message = exception.Message;
+
+        if (message.Contains("вже існує", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("already exists", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("не вдалося створити користувача", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("User indefinite", StringComparison.OrdinalIgnoreCase) ||
+            message.Contains("Wrong password", StringComparison.OrdinalIgnoreCase))
+        {
+            var normalizedMessage = message.Contains("User indefinite", StringComparison.OrdinalIgnoreCase) ||
+                                    message.Contains("Wrong password", StringComparison.OrdinalIgnoreCase)
+                ? "Невірний email або пароль."
+                : message;
+
+            return BadRequest(new { message = normalizedMessage });
+        }
+
+        return Problem(
+            detail: $"{fallbackMessage} {message}",
+            statusCode: StatusCodes.Status500InternalServerError);
     }
 }

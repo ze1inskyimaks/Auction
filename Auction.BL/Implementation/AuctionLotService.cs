@@ -78,16 +78,15 @@ public class AuctionLotService : IAuctionLotService
             }
             if (lotById.OwnerId != account.Id)
             {
-                throw new Exception($"You are not owned this auction lot. Id: {lotId}, Account: {account}");
+                throw new Exception($"You are not the owner of this auction lot. Id: {lotId}, Account: {account}");
             }
 
             var openWithoutBids = lotById.Status == Status.Open &&
-                                  lotById.CurrentWinnerId is null &&
-                                  lotById.CurrentPrice <= 0;
+                                  lotById.CurrentWinnerId is null;
 
             if (lotById.Status != Status.Active && lotById.Status != Status.Cancelled && !openWithoutBids)
             {
-                throw new Exception($"You can't update this auction lot because its status is {lotById.Status}. Id: {lotId}, Account: {account}");
+                throw new Exception($"You cannot update this auction lot because its status is {lotById.Status}. Id: {lotId}, Account: {account}");
             }
             
             var canChangeStartTime = lotById.Status == Status.Active || lotById.Status == Status.Cancelled;
@@ -136,16 +135,15 @@ public class AuctionLotService : IAuctionLotService
 
             if (lotById.OwnerId != account.Id)
             {
-                throw new Exception($"You are not owned this auction lot. Id: {lotId}, Account: {account}");
+                throw new Exception($"You are not the owner of this auction lot. Id: {lotId}, Account: {account}");
             }
 
             var openWithoutBids = lotById.Status == Status.Open &&
-                                  lotById.CurrentWinnerId is null &&
-                                  lotById.CurrentPrice <= 0;
+                                  lotById.CurrentWinnerId is null;
 
             if (lotById.Status != Status.Active && lotById.Status != Status.Cancelled && !openWithoutBids)
             {
-                throw new Exception($"You can't delete this auction lot because its status is {lotById.Status}. Id: {lotId}, Account: {account}");
+                throw new Exception($"You cannot delete this auction lot because its status is {lotById.Status}. Id: {lotId}, Account: {account}");
             }
             
             var lot = await _lotRepository.DeleteLot(lotById);
@@ -178,6 +176,20 @@ public class AuctionLotService : IAuctionLotService
     public List<AuctionLotDtoOutput> GetListOfActiveAuctionLots()
     {
         return _lotRepository.GetActiveLot()!
+            .Select(AuctionLotMapping.ToDto)
+            .ToList();
+    }
+
+    public List<AuctionLotDtoOutput> GetListOfArchivedAuctionLots()
+    {
+        return _lotRepository.GetArchivedLot()!
+            .Select(AuctionLotMapping.ToDto)
+            .ToList();
+    }
+
+    public List<AuctionLotDtoOutput> GetWonLotsByUserId(string userId)
+    {
+        return _lotRepository.GetWonLotsByWinnerId(userId)!
             .Select(AuctionLotMapping.ToDto)
             .ToList();
     }
