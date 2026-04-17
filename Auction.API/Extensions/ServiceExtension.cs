@@ -182,7 +182,11 @@ public static class ServiceExtension
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+        var disableHttpsRedirection = app.Configuration.GetValue<bool>("DisableHttpsRedirection");
+        if (!disableHttpsRedirection)
+        {
+            app.UseHttpsRedirection();
+        }
         app.UseStaticFiles();
 
         app.UseRouting();
