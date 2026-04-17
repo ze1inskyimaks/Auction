@@ -1,20 +1,23 @@
-﻿using Auction.BL.Model.AuctionLot;
+using Auction.BL.Model.AuctionLot;
 
 namespace Auction.BL.Model.Mapping;
 
 public static class AuctionLotMapping
 {
-    public static Data.Model.AuctionLot ToAuctionLot(AuctionLotDtoInput lotInput, Data.Model.Account ownerAccount, string? linkToImage = null)
+    public static Data.Model.AuctionLot ToAuctionLot(
+        AuctionLotDtoInput lotInput,
+        Data.Model.Account ownerAccount,
+        string? linkToImage = null)
     {
-        var lot = new Data.Model.AuctionLot()
+        var lot = new Data.Model.AuctionLot
         {
-            Id = Guid.Empty,
             Name = lotInput.Name,
             Description = lotInput.Description,
             LinkToImage = linkToImage,
             StartTime = lotInput.StartTime,
             OwnerId = ownerAccount.Id,
             OwnerAccount = ownerAccount,
+            CategoryId = lotInput.CategoryId,
             StartPrice = lotInput.StartPrice,
         };
         return lot;
@@ -30,6 +33,9 @@ public static class AuctionLotMapping
             LinkToImage = lot.LinkToImage,
             StartTime = lot.StartTime,
             OwnerId = lot.OwnerId,
+            OwnerUserName = lot.OwnerAccount?.UserName,
+            CategoryId = lot.CategoryId,
+            CategoryName = lot.Category?.Name,
             CurrentWinnerId = lot.CurrentWinnerId,
             CurrentPrice = lot.CurrentPrice,
             LastBitTime = lot.LastBitTime,
@@ -37,6 +43,7 @@ public static class AuctionLotMapping
             StartPrice = lot.StartPrice,
             EndPrice = lot.EndPrice,
             WinnerId = lot.WinnerId,
+            WinnerUserName = lot.WinnerAccount?.UserName,
             Status = lot.Status,
             UpdatedAt = lot.UpdatedAt,
             CreatedAt = lot.CreatedAt

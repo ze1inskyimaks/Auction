@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Auction.Data.Model;
 
@@ -13,23 +13,27 @@ public class AuctionLot
     [StringLength(500)]
     public string? Description { get; set; }
     public string? LinkToImage { get; set; }
+    public AuctionLotImage? Image { get; set; }
     public DateTime StartTime { get; set; } = DateTime.UtcNow.AddHours(1);
-    public string JobId { get; set; } = String.Empty;
+    public string JobId { get; set; } = string.Empty;
     
     [Required]
     public string OwnerId { get; set; }
     public Account? OwnerAccount { get; set; }
 
+    public Guid? CategoryId { get; set; }
+    public AuctionCategory? Category { get; set; }
+
     public Guid? CurrentWinnerId { get; set; }
-    public double CurrentPrice { get; set; } = 0;
-    public DateTime LastBitTime { get; set; } = DateTime.MaxValue; 
+    public double CurrentPrice { get; set; }
+    public DateTime LastBitTime { get; set; } = DateTime.MaxValue;
     
     public List<Guid>? AuctionHistoryId { get; set; }
     public List<AuctionHistory>? AuctionHistories { get; set; }
     
     [Required]
-    public double StartPrice { get; set; } = 0;
-    public double EndPrice { get; set; } = 0;
+    public double StartPrice { get; set; }
+    public double EndPrice { get; set; }
     public string? WinnerId { get; set; }
     public Account? WinnerAccount { get; set; }
 

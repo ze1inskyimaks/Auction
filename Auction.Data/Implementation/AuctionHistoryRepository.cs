@@ -32,6 +32,25 @@ public class AuctionHistoryRepository : IAuctionHistoryRepository
         return await _context.AuctionHistories.FindAsync(id);
     }
 
+    public async Task<List<AuctionHistory>> GetHistoryLogsByLotId(Guid lotId)
+    {
+        return await _context.AuctionHistories
+            .Where(h => h.LotId == lotId)
+            .Include(h => h.AuctionLot)
+            .OrderByDescending(h => h.HistoryNumber)
+            .ThenByDescending(h => h.BidTime)
+            .ToListAsync();
+    }
+
+    public async Task<List<AuctionHistory>> GetHistoryLogsByBidderId(Guid bidderId)
+    {
+        return await _context.AuctionHistories
+            .Where(h => h.BidderId == bidderId)
+            .Include(h => h.AuctionLot)
+            .OrderByDescending(h => h.BidTime)
+            .ToListAsync();
+    }
+
     public async Task<int?> GetLastHistoryNumberByLotId(Guid lotId)
     {
         var latestHistory = await _context.AuctionHistories

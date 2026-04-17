@@ -51,11 +51,11 @@ public static class UserManagerExtension
         AuctionLot lot
     )
     {
-        var acc = await userManager.FindByIdWithHostedLotsAsync(context, userId);
+        var acc = await userManager.FindByIdWithWonLotsAsync(context, userId);
         if (acc is null)
             return;
 
-        lot.OwnerId = acc.Id;
+        lot.WinnerId = acc.Id;
         context.Attach(lot);
         
         acc.WinningLots?.Add(lot);

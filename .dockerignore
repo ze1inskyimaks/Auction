@@ -1,0 +1,13 @@
+.git
+.gitignore
+.idea
+.vs
+**/bin
+**/obj
+**/node_modules
+**/build
+**/build-temp
+*.user
+*.suo
+*.cache
+*.log

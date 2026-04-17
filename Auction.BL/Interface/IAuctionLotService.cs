@@ -10,6 +10,11 @@ public interface IAuctionLotService
     public Task<Result<AuctionLotDtoOutput>> CreateAuctionLot(AuctionLotDtoInput lot, Account account, IFormFile? file = null);
     public Task<Result<AuctionLotDtoOutput>> ChangeAuctionLot(Guid lotId, AuctionLotDtoInput lot, Account account);
     public Task<Result<AuctionLotDtoOutput>> DeleteAuctionLot(Guid id, Account account);
+    public Task<Result<AuctionLotDtoOutput>> MarkAuctionLotAsDelivered(Guid id);
+    public Task<Result<AuctionLotDtoOutput>> CancelAuctionLotDelivery(Guid id);
     public Task<AuctionLotDtoOutput?> GetAuctionLot(Guid id);
     public List<AuctionLotDtoOutput>? GetListOfActiveAuctionLots();
+    public List<AuctionLotDtoOutput>? GetListOfArchivedAuctionLots();
+    public List<AuctionLotDtoOutput>? GetWonLotsByUserId(string userId);
+    public List<AuctionLotDtoOutput>? GetHostedLotsByUserId(string userId);
 }

@@ -1,0 +1,79 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: auction-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "StrongPass123!"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "StrongPass123!" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - auction-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: auction-redis
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - auction-net
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auction-api
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DisableHttpsRedirection: "true"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=auction;User Id=sa;Password=StrongPass123!;TrustServerCertificate=True;Encrypt=False;"
+      ConnectionStringsToRedis__Redis: "redis:6379,abortConnect=False"
+    ports:
+      - "5041:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - auction-net
+
+  frontend:
+    build:
+      context: ${FRONTEND_CONTEXT:-../auction_front}
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_BACKEND_ORIGIN: "http://localhost:5041"
+    container_name: auction-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - auction-net
+
+volumes:
+  sqlserver-data:
+  redis-data:
+
+networks:
+  auction-net:
+    driver: bridge

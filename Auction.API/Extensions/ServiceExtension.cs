@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 
 namespace Auction.API.Extensions;
 
@@ -33,14 +34,16 @@ public static class ServiceExtension
 
     public static IServiceCollection AddDependencyInjection(this IServiceCollection services)
     {
+        services.AddMemoryCache();
         services.AddScoped<IAuctionLotService, AuctionLotService>();
         services.AddScoped<IAuctionLotRepository, AuctionLotRepository>();
         services.AddScoped<IAuctionHistoryRepository, AuctionHistoryRepository>();
+        services.AddScoped<IAuctionCategoryRepository, AuctionCategoryRepository>();
+        services.AddScoped<ICategoryRequestRepository, CategoryRequestRepository>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IAuctionLobbyService, AuctionLobbyService>();
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<JwtService>();
-        services.AddScoped<CloudinaryService>();
         
         services.AddSingleton<IAuctionTimerService, AuctionTimerService>();
         return services;
@@ -52,12 +55,19 @@ public static class ServiceExtension
         return services;
     }
 
-    public static IServiceCollection AddRedis(this IServiceCollection services)
+    public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddStackExchangeRedisCache(options =>
+        var redisConnection = configuration.GetSection("ConnectionStringsToRedis:Redis").Value ?? "localhost:6379";
+        var redisOptions = ConfigurationOptions.Parse(redisConnection, true);
+        redisOptions.AbortOnConnectFail = false;
+        redisOptions.ConnectTimeout = 500;
+        redisOptions.AsyncTimeout = 500;
+        redisOptions.SyncTimeout = 500;
+
+        services.AddStackExchangeRedisCache(cacheOptions =>
         {
-            options.Configuration = "localhost:6379";
-            options.InstanceName = "MyRedisInstance";
+            cacheOptions.ConfigurationOptions = redisOptions;
+            cacheOptions.InstanceName = "AuctionRedisInstance";
         });
         return services;
     }
@@ -68,11 +78,15 @@ public static class ServiceExtension
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.WithOrigins("http://localhost:3000")  // Вказуємо конкретний домен фронтенду
-                    .AllowCredentials()  // Дозволяємо куки
-                    .AllowAnyHeader()    // Дозволяємо будь-які заголовки
-                    .AllowAnyMethod()    // Дозволяємо будь-які методи
-                    .AllowCredentials();
+                policy.WithOrigins(
+                        "http://localhost:3000",
+                        "https://localhost:3000",
+                        "http://localhost:5173",
+                        "https://localhost:5173"
+                    )
+                    .AllowCredentials()
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
             });
         });
         service.ConfigureApplicationCookie(options =>
@@ -168,7 +182,13 @@ public static class ServiceExtension
             app.UseSwaggerUI();
         }
 
-        app.UseHttpsRedirection();
+        var disableHttpsRedirection = app.Configuration.GetValue<bool>("DisableHttpsRedirection");
+        if (!disableHttpsRedirection)
+        {
+            app.UseHttpsRedirection();
+        }
+        app.UseStaticFiles();
+
         app.UseRouting();
         app.UseCors("AllowAll");
         app.UseAuthentication();
